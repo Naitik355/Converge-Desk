@@ -17,12 +17,14 @@ export function getCookie(name) {
   return match ? decodeURIComponent(match[3]) : null;
 }
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const rawBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/+$/, '');
+export const API_BASE_URL = rawBaseUrl.endsWith('/api') ? rawBaseUrl : `${rawBaseUrl}/api`;
 
 export async function request(endpoint, options = {}) {
   const { params, headers = {}, ...customConfig } = options;
 
-  let url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  let url = `${API_BASE_URL}${cleanEndpoint}`.replace(/\/api\/api\//g, '/api/');
 
   if (params) {
     const searchParams = new URLSearchParams();

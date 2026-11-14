@@ -15,31 +15,84 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env=environ.Env()
-environ.Env.read_env(BASE_DIR/".env")
+env = environ.Env()
+environ.Env.read_env(BASE_DIR / ".env")
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-
-CSRF_TRUSTED_ORIGINS = [
-    "http://127.0.0.1:5173",
-    "http://localhost:5173",
-]
+# Determine runtime environment
+is_render = os.environ.get("RENDER") is not None
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("DJANGO_SECRET_KEY")
+SECRET_KEY = env("DJANGO_SECRET_KEY", default="django-insecure-secret-key-change-in-production")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DJANGO_DEBUG", default=not is_render)
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[
+    "*",
+    "converge-desk.onrender.com",
+    ".onrender.com",
+    "localhost",
+    "127.0.0.1",
+])
 
+# Reverse proxy SSL header (essential for Render / reverse proxies behind HTTPS)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# CORS & CSRF configuration
+CORS_ALLOWED_ORIGINS = [
+    "https://converge-desk.vercel.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://converge-desk.vercel.app",
+    "https://*.vercel.app",
+    "https://converge-desk.onrender.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+# Allow additional origins from environment variables if set
+extra_cors = env.list("CORS_ALLOWED_ORIGINS", default=[])
+for origin in extra_cors:
+    if origin not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(origin)
+
+extra_csrf = env.list("CSRF_TRUSTED_ORIGINS", default=[])
+for origin in extra_csrf:
+    if origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
+
+# Cookies configuration for cross-domain sessions (Vercel <-> Render)
+is_production = is_render or not DEBUG
+
+if is_production:
+    SESSION_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_SECURE = True
+else:
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SECURE = False
+
+CSRF_COOKIE_HTTPONLY = False
 
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -55,6 +108,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -87,18 +141,24 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env("DB_NAME"),
-        'USER':env("DB_USER"),
-        'PASSWORD':env("DB_PASSWORD"),
-        'HOST':env("DB_HOST"),
-        'PORT':env("DB_PORT"),
+if "DATABASE_URL" in os.environ and os.environ.get("DATABASE_URL"):
+    DATABASES = {
+        'default': env.db("DATABASE_URL")
     }
-}
-ETHERPAD_API_URL=env("ETHERPAD_API_URL",default="http://127.0.0.1:9001")
-ETHERPAD_API_KEY=env("ETHERPAD_API_KEY")
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env("DB_NAME", default="syncspace"),
+            'USER': env("DB_USER", default="postgres"),
+            'PASSWORD': env("DB_PASSWORD", default=""),
+            'HOST': env("DB_HOST", default="127.0.0.1"),
+            'PORT': env("DB_PORT", default="5432"),
+        }
+    }
+
+ETHERPAD_API_URL = env("ETHERPAD_API_URL", default="http://127.0.0.1:9001")
+ETHERPAD_API_KEY = env("ETHERPAD_API_KEY", default="")
 
 
 # Password validation
@@ -136,6 +196,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
@@ -145,16 +206,16 @@ MEDIA_ROOT = BASE_DIR / "media"
 MAILERS = {
     'default': {
         'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
-        'OPTIONS':{
-            'host':'smtp.gmail.com',
-            'port':587,
-            'use_tls':True,
-            'username':os.environ.get("EMAIL_HOST_USER",""),
-            'password':os.environ.get("EMAIL_HOST_PASSWORD",""),
-            'timeout':10
+        'OPTIONS': {
+            'host': 'smtp.gmail.com',
+            'port': 587,
+            'use_tls': True,
+            'username': os.environ.get("EMAIL_HOST_USER", ""),
+            'password': os.environ.get("EMAIL_HOST_PASSWORD", ""),
+            'timeout': 10
         }
     },
 }
 
-DEFAULT_FROM_EMAIL = os.environ.get("EMAIL_HOST_USER","")
-FRONTEND_URL = "http://localhost:5173"
+DEFAULT_FROM_EMAIL = os.environ.get("EMAIL_HOST_USER", "")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://converge-desk.vercel.app")

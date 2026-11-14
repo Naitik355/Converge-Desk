@@ -156,13 +156,8 @@ def project_members(request,project_id):
     except (json.JSONDecodeError,TypeError):
         return JsonResponse({"error":"Invalid json"},status=400)
 
-<<<<<<< HEAD
     identifier = data.get("email") or data.get("username")
     role = str(data.get("role", "")).lower()
-=======
-    username=data.get("username")
-    role=data.get("role")
->>>>>>> origin/main
 
     if not isinstance(identifier,str) or not identifier.strip():
         return JsonResponse({"error":"A username or email address is required"},status=400)
