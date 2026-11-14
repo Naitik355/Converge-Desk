@@ -276,7 +276,7 @@ export const CollaborativeEditor = ({
                 style={{ backgroundColor: c.color }}
                 className="inline-flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white ring-2 ring-[var(--surface-card)] shadow-sm transform hover:scale-110 transition-transform cursor-default"
               >
-                {c.name.charAt(0).toUpperCase()}
+                {(c?.name?.[0] || 'U').toUpperCase()}
               </span>
             ))}
           </div>

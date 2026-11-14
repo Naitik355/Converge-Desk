@@ -132,7 +132,7 @@ export const GlobalSearch = ({ isOpen, onClose }) => {
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div className="w-7 h-7 rounded-[var(--btn-radius)] bg-[var(--surface-canvas)] border border-[var(--border-subtle)] text-[var(--signal-teal)] flex items-center justify-center font-bold text-xs shrink-0">
-                            {project.name.charAt(0).toUpperCase()}
+                            {(project?.name?.[0] || 'P').toUpperCase()}
                           </div>
                           <div className="min-w-0">
                             <p className="font-medium text-[var(--text-primary)] group-hover:text-[var(--signal-teal)] transition-colors truncate">{project.name}</p>

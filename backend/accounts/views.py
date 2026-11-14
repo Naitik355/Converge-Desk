@@ -56,16 +56,19 @@ def login(request):
         return JsonResponse({"message":"Login Successful","username":user.username})
     return JsonResponse({"error":"Invalid username or password"},status=401)
 
-@login_required
+@csrf_exempt
 @require_POST
 def logout(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"message": "Already logged out"})
     auth_logout(request)
     return JsonResponse({
         "message": "Logout successful"
     })
 
-@login_required
 def current_user(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Authentication required"}, status=401)
     user = request.user
 
     return JsonResponse({

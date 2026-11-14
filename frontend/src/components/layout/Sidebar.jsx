@@ -148,12 +148,12 @@ export const Sidebar = ({
             }`}
           >
             <div className="w-8 h-8 rounded-lg bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--signal-teal)] flex items-center justify-center font-bold font-mono text-xs shrink-0 shadow-xs">
-              {user.username.charAt(0).toUpperCase()}
+              {(user?.username?.[0] || user?.email?.[0] || 'U').toUpperCase()}
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-bold font-mono text-[var(--text-primary)] truncate">
-                  {user.username}
+                  {user?.username || 'User'}
                 </p>
               </div>
             )}

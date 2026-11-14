@@ -17,7 +17,11 @@ export const AuthProvider = ({ children }) => {
   const refreshUser = useCallback(async () => {
     try {
       const userData = await getCurrentUser();
-      setUser(userData);
+      if (userData && typeof userData === 'object' && userData.username && typeof userData.username === 'string') {
+        setUser(userData);
+      } else {
+        setUser(null);
+      }
     } catch {
       setUser(null);
     } finally {
@@ -75,7 +79,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         isLoading,
-        isAuthenticated: !!user,
+        isAuthenticated: Boolean(user && user.username),
         login,
         signup,
         logout,

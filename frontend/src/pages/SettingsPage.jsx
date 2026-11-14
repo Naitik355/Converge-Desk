@@ -93,15 +93,15 @@ export const SettingsPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
             <div className="p-3 bg-[var(--surface-canvas)] rounded-[var(--card-radius)] border border-[var(--border-subtle)]">
               <span className="text-[var(--text-muted)] block mb-0.5">User ID</span>
-              <span className="font-mono font-semibold text-[var(--signal-teal)]">#{user.id}</span>
+              <span className="font-mono font-semibold text-[var(--signal-teal)]">#{user?.id}</span>
             </div>
             <div className="p-3 bg-[var(--surface-canvas)] rounded-[var(--card-radius)] border border-[var(--border-subtle)]">
               <span className="text-[var(--text-muted)] block mb-0.5">Username</span>
-              <span className="font-semibold text-[var(--text-primary)]">{user.username}</span>
+              <span className="font-semibold text-[var(--text-primary)]">{user?.username || 'User'}</span>
             </div>
             <div className="p-3 bg-[var(--surface-canvas)] rounded-[var(--card-radius)] border border-[var(--border-subtle)]">
               <span className="text-[var(--text-muted)] block mb-0.5">Email</span>
-              <span className="text-[var(--text-primary)] truncate block">{user.email || 'None'}</span>
+              <span className="text-[var(--text-primary)] truncate block">{user?.email || 'None'}</span>
             </div>
           </div>
         ) : (

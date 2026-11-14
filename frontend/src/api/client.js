@@ -75,13 +75,16 @@ export async function request(endpoint, options = {}) {
       responseData = await response.json();
     } else {
       const text = await response.text();
-      // If we received an HTML page while expecting JSON (often 404 or Django debug)
-      if (text.startsWith('<!doctype') || text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
-        if (!response.ok) {
-          throw new ApiError(`Server returned HTML error (${response.status})`, response.status);
-        }
+      const trimmed = text.trim();
+      // If we received an HTML page while expecting JSON (e.g. 404, Django debug, or SPA fallback index.html)
+      if (trimmed.startsWith('<!doctype') || trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<html') || trimmed.startsWith('<head')) {
+        throw new ApiError(`Expected JSON response but received HTML (${response.status})`, response.ok ? 401 : response.status);
       }
-      responseData = text ? { message: text } : null;
+      try {
+        responseData = JSON.parse(text);
+      } catch {
+        responseData = text ? { message: text } : null;
+      }
     }
 
     if (!response.ok) {

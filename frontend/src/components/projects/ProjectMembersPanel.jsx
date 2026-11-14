@@ -291,8 +291,9 @@ export const ProjectMembersPanel = ({ projectId, isOwner }) => {
                           : "bg-slate-800 text-slate-400 border-slate-700"
                     }`}
                   >
-                    {invitation.status.charAt(0).toUpperCase() +
-                      invitation.status.slice(1)}
+                    {invitation?.status
+                      ? invitation.status.charAt(0).toUpperCase() + invitation.status.slice(1)
+                      : "Pending"}
                   </span>
 
                   {invitation.status === "pending" && (
