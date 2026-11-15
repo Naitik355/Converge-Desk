@@ -5,6 +5,7 @@ import {
   signup as apiSignup,
   logout as apiLogout,
 } from '../api/auth';
+import { setStoredCsrfToken } from '../api/client';
 import { useToast } from './ToastContext';
 
 const AuthContext = createContext(undefined);
@@ -67,10 +68,12 @@ export const AuthProvider = ({ children }) => {
     try {
       await apiLogout();
       setUser(null);
+      setStoredCsrfToken(null);
       success('Logged out successfully');
     } catch {
       // Even if network failed, clear local state
       setUser(null);
+      setStoredCsrfToken(null);
     }
   };
 

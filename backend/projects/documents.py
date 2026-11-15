@@ -58,6 +58,7 @@ def serialize_document(document, request=None):
     }
 
 
+@csrf_exempt
 @login_required
 @require_http_methods(["GET", "POST"])
 def project_documents(request, project_id):
@@ -133,6 +134,7 @@ def project_documents(request, project_id):
     )
 
 
+@csrf_exempt
 @login_required
 @require_http_methods(["GET", "PUT", "PATCH", "DELETE"])
 def document_detail(request, pk):

@@ -19,15 +19,18 @@ from django.core.serializers.json import DjangoJSONEncoder
 import uuid
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import get_user_model
+from django.utils.decorators import method_decorator
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from config.authentication import CsrfExemptSessionAuthentication
 # Create your views here.
 
+@method_decorator(csrf_exempt, name='dispatch')
 class ProjectCreateView(generics.CreateAPIView):
+    authentication_classes = [CsrfExemptSessionAuthentication]
     serializer_class = ProjectSerializer
     permission_classes = [permissions.IsAuthenticated]
-    @csrf_exempt
+
     @transaction.atomic
     def perform_create(self, serializer):
         project = serializer.save(created_by=self.request.user)
@@ -77,6 +80,7 @@ def project_detail(request, project_id):
         "created_at": project.created_at,
     }, safe=True)
 
+@csrf_exempt
 @login_required
 @require_http_methods(["PUT", "PATCH"])
 def update_project(request, project_id):
@@ -113,6 +117,7 @@ def update_project(request, project_id):
         "description": project.description
     })
 
+@csrf_exempt
 @login_required
 @require_http_methods(["DELETE"])
 def delete_project(request,project_id):
@@ -127,6 +132,7 @@ def delete_project(request,project_id):
     return JsonResponse({"message":"Project deleted successfuly"})
 
 
+@csrf_exempt
 @login_required
 @require_http_methods(["GET","POST"])
 def project_members(request,project_id):
@@ -285,6 +291,7 @@ def project_invitation_details(request, token):
         "role": invitation.role,
     })
 
+@csrf_exempt
 @login_required
 @require_http_methods(["DELETE"])
 def revoke_project_invitation(request, project_id, invitation_id):
@@ -306,6 +313,7 @@ def revoke_project_invitation(request, project_id, invitation_id):
 
     return JsonResponse({"message": "Invitation deleted."})
 
+@csrf_exempt
 @login_required
 @require_http_methods(["POST"])
 @transaction.atomic
@@ -352,6 +360,7 @@ def accept_project_invitation(request):
         "role": membership.role,
     }, status=200)
 
+@csrf_exempt
 @login_required
 @require_http_methods(["PATCH","DELETE"])
 def project_member_details(request,project_id,user_id):
@@ -393,6 +402,7 @@ def project_member_details(request,project_id,user_id):
     })
 
 
+@csrf_exempt
 @login_required
 @require_http_methods(["GET", "POST"])
 def project_meetings(request, project_id):
@@ -430,6 +440,7 @@ def project_meetings(request, project_id):
     }, status=201)
 
 
+@csrf_exempt
 @login_required
 @require_http_methods(["POST"])
 def invite_meeting_members(request, project_id, meeting_id):

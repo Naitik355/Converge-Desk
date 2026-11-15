@@ -7,6 +7,7 @@ from django.db import transaction
 from django.http import JsonResponse,HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from io import BytesIO
 from zipfile import ZIP_DEFLATED,ZipFile
@@ -52,6 +53,7 @@ def read_content(item):
         return stream.read().decode("utf-8")
 
 
+@csrf_exempt
 @login_required
 @require_http_methods(["GET", "POST"])
 def project_code_files(request, project_id):
@@ -115,6 +117,7 @@ def project_code_files(request, project_id):
     )
 
 
+@csrf_exempt
 @login_required
 @require_http_methods(["GET", "PUT","PATCH","DELETE"])
 def project_code_file_detail(request, project_id, file_id):

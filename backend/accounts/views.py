@@ -6,6 +6,8 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth import authenticate,login as auth_login,logout as auth_logout
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from django.middleware.csrf import get_token
+from django.conf import settings
 
 
 # Create your views here.
@@ -53,7 +55,20 @@ def login(request):
     )
     if user is not None:
         auth_login(request,user)
-        return JsonResponse({"message":"Login Successful","username":user.username})
+        csrf_token = get_token(request)
+        response = JsonResponse({
+            "message":"Login Successful",
+            "username":user.username,
+            "csrfToken": csrf_token,
+        })
+        response.set_cookie(
+            'csrftoken',
+            csrf_token,
+            samesite=getattr(settings, 'CSRF_COOKIE_SAMESITE', 'None'),
+            secure=getattr(settings, 'CSRF_COOKIE_SECURE', True),
+            httponly=False,
+        )
+        return response
     return JsonResponse({"error":"Invalid username or password"},status=401)
 
 @csrf_exempt
@@ -70,9 +85,19 @@ def current_user(request):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "Authentication required"}, status=401)
     user = request.user
+    csrf_token = get_token(request)
 
-    return JsonResponse({
+    response = JsonResponse({
         "id": user.id,
         "username": user.username,
-        "email": user.email
+        "email": user.email,
+        "csrfToken": csrf_token,
     })
+    response.set_cookie(
+        'csrftoken',
+        csrf_token,
+        samesite=getattr(settings, 'CSRF_COOKIE_SAMESITE', 'None'),
+        secure=getattr(settings, 'CSRF_COOKIE_SECURE', True),
+        httponly=False,
+    )
+    return response

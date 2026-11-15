@@ -17,6 +17,33 @@ export function getCookie(name) {
   return match ? decodeURIComponent(match[3]) : null;
 }
 
+let memoryCsrfToken = null;
+
+export function setStoredCsrfToken(token) {
+  if (token) {
+    memoryCsrfToken = token;
+    try {
+      localStorage.setItem('convergedesk_csrf_token', token);
+    } catch {}
+  } else {
+    memoryCsrfToken = null;
+    try {
+      localStorage.removeItem('convergedesk_csrf_token');
+    } catch {}
+  }
+}
+
+export function getCsrfToken() {
+  const fromCookie = getCookie('csrftoken');
+  if (fromCookie) return fromCookie;
+  if (memoryCsrfToken) return memoryCsrfToken;
+  try {
+    return localStorage.getItem('convergedesk_csrf_token') || null;
+  } catch {
+    return null;
+  }
+}
+
 const rawBaseUrl = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/+$/, '');
 export const API_BASE_URL = rawBaseUrl.endsWith('/api') ? rawBaseUrl : `${rawBaseUrl}/api`;
 
@@ -44,7 +71,7 @@ export async function request(endpoint, options = {}) {
     'Accept': 'application/json',
   };
 
-  const csrfToken = getCookie('csrftoken');
+  const csrfToken = getCsrfToken();
   if (csrfToken && ['POST', 'PUT', 'PATCH', 'DELETE'].includes((customConfig.method || 'GET').toUpperCase())) {
     defaultHeaders['X-CSRFToken'] = csrfToken;
   }
@@ -94,6 +121,10 @@ export async function request(endpoint, options = {}) {
         responseData?.message ||
         `Request failed with status ${response.status}`;
       throw new ApiError(errorMessage, response.status, responseData);
+    }
+
+    if (responseData && typeof responseData === 'object' && responseData.csrfToken) {
+      setStoredCsrfToken(responseData.csrfToken);
     }
 
     return responseData;
