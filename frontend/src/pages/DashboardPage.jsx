@@ -10,36 +10,66 @@ import { EditProjectModal } from '../components/projects/EditProjectModal';
 import { DeleteProjectDialog } from '../components/projects/DeleteProjectDialog';
 import { Button } from '../components/common/Button';
 import { EmptyState } from '../components/common/EmptyState';
-import { CardSkeleton } from '../components/common/LoadingSkeleton';
+import { CardSkeleton, StatSkeleton } from '../components/common/LoadingSkeleton';
+import { PriorityBadge } from '../components/common/Badge';
+import { PageHeader } from '../components/common/PageHeader';
+import { Panel } from '../components/common/Card';
+import { StatTile } from '../components/common/StatTile';
 import {
   FolderKanban,
-  CheckSquare,
-  Presentation,
+  ListChecks,
+  Shapes,
   Plus,
   ArrowRight,
-  Sparkles,
   AlertCircle,
   RefreshCw,
-  Terminal,
+  Code2,
   Video,
   FileText,
-  Zap,
+  CalendarDays,
   Activity,
+  ArrowUpRight,
+  CheckCircle2,
+  Circle,
 } from 'lucide-react';
+
+const QUICK_ACTIONS = [
+  {
+    title: 'Documents',
+    note: 'Write and edit together',
+    path: '/documents',
+    icon: FileText,
+  },
+  {
+    title: 'Code workspace',
+    note: 'Open the browser IDE',
+    path: '/code',
+    icon: Code2,
+  },
+  {
+    title: 'Whiteboards',
+    note: 'Sketch the architecture',
+    path: '/whiteboards',
+    icon: Shapes,
+  },
+  {
+    title: 'Team & meetings',
+    note: 'Start a huddle',
+    path: '/meetings',
+    icon: Video,
+  },
+];
 
 export const DashboardPage = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [projects, setProjects] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [boardsCount, setBoardsCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Aggregated summary stats
-  const [totalTasks, setTotalTasks] = useState(0);
-  const [totalBoards, setTotalBoards] = useState(0);
-
-  // Modal states
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [deletingProject, setDeletingProject] = useState(null);
@@ -51,31 +81,32 @@ export const DashboardPage = () => {
       const projectList = await listProjects();
       setProjects(projectList);
 
-      let taskCount = 0;
-      let boardCount = 0;
+      const allTasks = [];
+      let totalBoards = 0;
 
-      const detailPromises = projectList.slice(0, 5).map(async (p) => {
-        try {
-          const [tasks, boards] = await Promise.all([
-            getProjectTasks(p.id).catch(() => []),
-            getProjectBoards(p.id).catch(() => []),
-          ]);
-          taskCount += tasks.length;
-          boardCount += boards.length;
-        } catch {
-          // ignore individual project fetch error
-        }
-      });
+      await Promise.all(
+        projectList.slice(0, 8).map(async (p) => {
+          try {
+            const [projectTasks, projectBoards] = await Promise.all([
+              getProjectTasks(p.id).catch(() => []),
+              getProjectBoards(p.id).catch(() => []),
+            ]);
+            projectTasks.forEach((t) => allTasks.push({ ...t, projectName: p.name }));
+            totalBoards += projectBoards.length;
+          } catch {
+            /* keep the rest of the dashboard usable */
+          }
+        })
+      );
 
-      await Promise.all(detailPromises);
-      setTotalTasks(taskCount);
-      setTotalBoards(boardCount);
+      setTasks(allTasks);
+      setBoardsCount(totalBoards);
     } catch (err) {
-      if (err?.status === 401) {
-        setError('Please log in to view your projects and dashboard.');
-      } else {
-        setError(err?.message || 'Failed to load projects. Ensure the Django backend is running.');
-      }
+      setError(
+        err?.status === 401
+          ? 'Please sign in to access your projects and workspace.'
+          : err?.message || 'Failed to connect to backend service.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -83,245 +114,343 @@ export const DashboardPage = () => {
 
   useEffect(() => {
     if (!authLoading) {
-      if (!isAuthenticated) {
-        setIsLoading(false);
-      } else {
-        fetchDashboardData();
-      }
+      if (!isAuthenticated) setIsLoading(false);
+      else fetchDashboardData();
     }
   }, [authLoading, isAuthenticated, fetchDashboardData]);
 
-  if (!authLoading && !isAuthenticated) {
-    return null;
-  }
+  if (!authLoading && !isAuthenticated) return null;
+
+  const activeTasks = tasks.filter((t) => t.status !== 'done');
+  const completedTasks = tasks.filter((t) => t.status === 'done');
+  const completion = tasks.length ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
+  const upcomingDeadlines = tasks
+    .filter((t) => t.due_date && t.status !== 'done')
+    .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
+    .slice(0, 4);
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 text-[var(--text-primary)]">
-      {/* Welcome Banner */}
-      <div className="glass-card p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden border-l-4 border-l-[var(--signal-teal)]">
-        <div className="space-y-1.5 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--signal-teal)] text-[10px] font-mono">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--signal-teal)] animate-pulse" />
-            <span>WORKSPACE // ACTIVE</span>
-            <span className="text-[var(--border-subtle)]">|</span>
-            <span className="text-[var(--text-muted)]">NODE: POSTGRES + HOCUSPOCUS</span>
-          </div>
-          <h2 className="font-display text-2xl md:text-3xl font-extrabold tracking-tight text-[var(--text-primary)]">
-            Welcome back, {user?.username || 'Collaborator'}
-          </h2>
-          <p className="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed">
-            Sprint management, conflict-free Yjs documentation, and multiplayer canvas workspaces in one unified view.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2.5 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchDashboardData}
-            leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />}
-          >
-            REFRESH
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => setIsCreateOpen(true)}
-            leftIcon={<Plus className="w-4 h-4" />}
-          >
-            NEW PROJECT
-          </Button>
-        </div>
-      </div>
-
-      {/* Bento Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[
-          {
-            label: 'TOTAL PROJECTS',
-            value: projects.length,
-            icon: FolderKanban,
-            accent: 'var(--signal-teal)',
-            meta: 'ACTIVE WORKSPACES',
-          },
-          {
-            label: 'ACTIVE TASKS',
-            value: totalTasks,
-            icon: CheckSquare,
-            accent: 'var(--signal-amber)',
-            meta: 'SPRINT PIPELINE',
-          },
-          {
-            label: 'WHITEBOARD BOARDS',
-            value: totalBoards,
-            icon: Presentation,
-            accent: 'var(--signal-violet)',
-            meta: 'MULTIPLAYER CANVASES',
-          },
-        ].map((stat, i) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={i}
-              className="glass-card p-5 space-y-3 relative overflow-hidden"
+    <div className="mx-auto w-full max-w-[1440px] p-5 md:p-8 space-y-6 text-[var(--text-primary)]">
+      <PageHeader
+        eyebrow={`${today} · Workspace overview`}
+        title={`${greeting}, ${user?.username || 'builder'}`}
+        description="Here's the state of your projects, sprint work and recent activity."
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={fetchDashboardData}
+              leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />}
             >
-              <div className="flex items-center justify-between">
-                <span className="mono-label text-[var(--text-muted)]">
-                  {stat.label}
-                </span>
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center border border-[var(--border-subtle)] bg-[var(--surface-raised)]"
-                  style={{ color: stat.accent }}
-                >
-                  <Icon className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="font-display font-extrabold text-2xl md:text-3xl text-[var(--text-primary)]">
-                {isLoading ? '—' : stat.value}
-              </div>
-              <div className="text-[10px] font-mono text-[var(--text-muted)] flex items-center gap-1.5 pt-1 border-t border-[var(--border-subtle)]">
-                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stat.accent }} />
-                <span>{stat.meta}</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+              Refresh
+            </Button>
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => setIsCreateOpen(true)}
+              leftIcon={<Plus className="w-3.5 h-3.5" />}
+            >
+              New project
+            </Button>
+          </>
+        }
+      />
 
-      {/* Quick Launchpad Strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div
-          onClick={() => navigate('/collaborative-editor-test')}
-          className="glass-card p-4 hover:border-[var(--signal-teal)] cursor-pointer transition-all flex items-center justify-between group"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[var(--surface-raised)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--signal-teal)]">
-              <FileText className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="font-display font-bold text-xs text-[var(--text-primary)] group-hover:text-[var(--signal-teal)] transition-colors">
-                Collaborative Docs Sandbox
-              </h4>
-              <p className="text-[10px] font-mono text-[var(--text-muted)]">Real-time Yjs Editor with local file uploads</p>
-            </div>
-          </div>
-          <ArrowRight className="w-4 h-4 text-[var(--text-muted)] group-hover:translate-x-1 group-hover:text-[var(--signal-teal)] transition-all" />
-        </div>
-
-        <div
-          onClick={() => navigate('/whiteboards')}
-          className="glass-card p-4 hover:border-[var(--signal-amber)] cursor-pointer transition-all flex items-center justify-between group"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[var(--surface-raised)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--signal-amber)]">
-              <Presentation className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="font-display font-bold text-xs text-[var(--text-primary)] group-hover:text-[var(--signal-amber)] transition-colors">
-                Multiplayer Whiteboards
-              </h4>
-              <p className="text-[10px] font-mono text-[var(--text-muted)]">Excalidraw canvas architecture diagrams</p>
-            </div>
-          </div>
-          <ArrowRight className="w-4 h-4 text-[var(--text-muted)] group-hover:translate-x-1 group-hover:text-[var(--signal-amber)] transition-all" />
-        </div>
-
-        <div
-          onClick={() => navigate('/meetings')}
-          className="glass-card p-4 hover:border-[var(--signal-violet)] cursor-pointer transition-all flex items-center justify-between group"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[var(--surface-raised)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--signal-violet)]">
-              <Video className="w-4 h-4" />
-            </div>
-            <div>
-              <h4 className="font-display font-bold text-xs text-[var(--text-primary)] group-hover:text-[var(--signal-violet)] transition-colors">
-                Team PiP Video Calls
-              </h4>
-              <p className="text-[10px] font-mono text-[var(--text-muted)]">Low-latency WebRTC floating huddle window</p>
-            </div>
-          </div>
-          <ArrowRight className="w-4 h-4 text-[var(--text-muted)] group-hover:translate-x-1 group-hover:text-[var(--signal-violet)] transition-all" />
-        </div>
-      </div>
-
-      {/* Error Banner */}
       {error && (
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-rose-500/10 border border-[var(--signal-coral)] text-[var(--signal-coral)] text-xs font-mono">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-          <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <span>{error}</span>
+        <div className="flex items-start gap-3 rounded-[var(--radius-card)] border border-[var(--error)]/30 bg-[var(--error-soft)] p-4 text-[var(--error)]">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div className="flex flex-1 flex-col justify-between gap-2 sm:flex-row sm:items-center">
+            <span className="text-[12.5px]">{error}</span>
             <Button size="sm" variant="outline" onClick={fetchDashboardData}>
-              RETRY CONNECTION
+              Retry
             </Button>
           </div>
         </div>
       )}
 
-      {/* Projects Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2.5">
-          <div className="flex items-center gap-2">
-            <h3 className="font-display text-base font-bold text-[var(--text-primary)] tracking-tight">
-              Active Project Repositories
-            </h3>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--text-muted)]">
-              {projects.length} TOTAL
-            </span>
-          </div>
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => navigate('/projects')}
-            rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-          >
-            VIEW ALL
-          </Button>
-        </div>
-
-        {/* Loading State */}
-        {isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[1, 2, 3].map((n) => (
-              <CardSkeleton key={n} />
-            ))}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && projects.length === 0 && !error && (
-          <EmptyState
-            icon={<FolderKanban className="w-7 h-7" />}
-            title="No project workspaces found"
-            description="Create your first team project to organize sprint tasks, whiteboard diagrams, and collaborative documents."
-            action={
-              <Button onClick={() => setIsCreateOpen(true)} leftIcon={<Plus className="w-4 h-4" />}>
-                CREATE YOUR FIRST PROJECT
-              </Button>
-            }
-          />
-        )}
-
-        {/* Project Cards Grid */}
-        {!isLoading && projects.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {projects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onEdit={(p) => setEditingProject(p)}
-                onDelete={(p) => setDeletingProject(p)}
-              />
-            ))}
-          </div>
+      {/* Stat strip */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => <StatSkeleton key={i} />)
+        ) : (
+          <>
+            <StatTile
+              label="Projects"
+              value={projects.length}
+              hint="Shared workspaces"
+              icon={FolderKanban}
+              accent="accent"
+            />
+            <StatTile
+              label="Open tasks"
+              value={activeTasks.length}
+              hint={`${completedTasks.length} completed`}
+              icon={ListChecks}
+            />
+            <StatTile
+              label="Whiteboards"
+              value={boardsCount}
+              hint="Live canvases"
+              icon={Shapes}
+            />
+            <StatTile
+              label="Completion"
+              value={`${completion}%`}
+              hint="Across all projects"
+              icon={Activity}
+              accent={completion >= 70 ? 'success' : 'warning'}
+            />
+          </>
         )}
       </div>
 
-      {/* Modals */}
+      {/* Main + rail */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <div className="space-y-6 xl:col-span-8">
+          {/* Projects */}
+          <Panel
+            eyebrow="Workspaces"
+            title="Your projects"
+            description="Jump back into active project rooms."
+            bodyClassName="p-4"
+            actions={
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => navigate('/projects')}
+                rightIcon={<ArrowRight className="h-3.5 w-3.5" />}
+              >
+                View all
+              </Button>
+            }
+          >
+            {isLoading ? (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <CardSkeleton />
+                <CardSkeleton />
+              </div>
+            ) : projects.length === 0 ? (
+              <EmptyState
+                icon={<FolderKanban className="w-5 h-5" />}
+                title="No projects yet"
+                description="Create your first workspace to bring tasks, documents and canvases together."
+                action={
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onClick={() => setIsCreateOpen(true)}
+                    leftIcon={<Plus className="w-3.5 h-3.5" />}
+                  >
+                    Create project
+                  </Button>
+                }
+              />
+            ) : (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {projects.slice(0, 4).map((project) => (
+                  <ProjectCard
+                    key={project.id}
+                    project={project}
+                    onEdit={(p) => setEditingProject(p)}
+                    onDelete={(p) => setDeletingProject(p)}
+                  />
+                ))}
+              </div>
+            )}
+          </Panel>
+
+          {/* Tasks */}
+          <Panel
+            flush
+            eyebrow="Sprint work"
+            title="Needs attention"
+            description={`${activeTasks.length} open across your projects`}
+            bodyClassName="p-0"
+            actions={
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => navigate('/tasks')}
+                rightIcon={<ArrowRight className="h-3.5 w-3.5" />}
+              >
+                Task board
+              </Button>
+            }
+          >
+            {isLoading ? (
+              <div className="space-y-3 p-4">
+                <div className="sx-skeleton h-10 w-full" />
+                <div className="sx-skeleton h-10 w-full" />
+                <div className="sx-skeleton h-10 w-full" />
+              </div>
+            ) : activeTasks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center px-6 py-10 text-center">
+                <CheckCircle2 className="mb-2 h-5 w-5 text-[var(--success)]" />
+                <p className="font-display text-[13px] font-semibold">Everything is closed out</p>
+                <p className="mt-1 text-[12px] text-[var(--text-muted)]">
+                  New tasks from your projects will surface here.
+                </p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-[var(--border-subtle)]">
+                {activeTasks.slice(0, 6).map((task) => (
+                  <li
+                    key={task.id}
+                    onClick={() => navigate('/tasks')}
+                    className="group flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-[var(--surface-hover)]"
+                  >
+                    <Circle className="h-4 w-4 shrink-0 text-[var(--border-strong)] group-hover:text-[var(--accent)]" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[12.5px] font-medium text-[var(--text-primary)]">
+                        {task.title}
+                      </p>
+                      <p className="truncate text-[11px] text-[var(--text-muted)]">
+                        {task.projectName}
+                      </p>
+                    </div>
+                    <div className="hidden items-center gap-2 sm:flex">
+                      <PriorityBadge priority={task.priority} />
+                      <span className="w-[74px] text-right text-[11px] text-[var(--text-muted)]">
+                        {task.due_date
+                          ? new Date(task.due_date).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                            })
+                          : 'No date'}
+                      </span>
+                    </div>
+                    <ArrowUpRight className="h-3.5 w-3.5 text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100" />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+        </div>
+
+        {/* Contextual rail */}
+        <aside className="space-y-5 xl:col-span-4">
+          {/* Sprint health */}
+          <div className="rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface)] p-5">
+            <div className="flex items-center justify-between">
+              <p className="sx-eyebrow">Sprint health</p>
+              <span className="rounded-full bg-[var(--surface-inset)] px-2 py-0.5 text-[10px] font-semibold text-[var(--text-muted)]">
+                All projects
+              </span>
+            </div>
+            <div className="mt-4 flex items-end justify-between gap-4">
+              <div>
+                <p className="sx-numeral text-[var(--text-primary)]">{completion}%</p>
+                <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+                  {completedTasks.length} of {tasks.length} tasks complete
+                </p>
+              </div>
+              <div className="flex h-11 items-end gap-1">
+                {[35, 55, 40, 70, 60, 85, Math.max(completion, 12)].map((height, i) => (
+                  <span
+                    key={i}
+                    className="w-2 rounded-sm"
+                    style={{
+                      height: `${height}%`,
+                      backgroundColor: i === 6 ? 'var(--accent)' : 'var(--accent-soft)',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[var(--surface-inset)]">
+              <div
+                className="h-full rounded-full bg-[var(--accent)] transition-all duration-500"
+                style={{ width: `${completion}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Quick actions */}
+          <Panel
+            eyebrow="Studio"
+            title="Quick actions"
+            bodyClassName="p-2"
+          >
+            <div className="space-y-0.5">
+              {QUICK_ACTIONS.map((action) => (
+                <button
+                  key={action.path}
+                  onClick={() => navigate(action.path)}
+                  className="group flex w-full items-center gap-3 rounded-[8px] px-2.5 py-2.5 text-left transition-colors hover:bg-[var(--surface-hover)] cursor-pointer"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] text-[var(--accent)]">
+                    <action.icon className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-display text-[12px] font-semibold text-[var(--text-primary)]">
+                      {action.title}
+                    </span>
+                    <span className="block text-[10.5px] text-[var(--text-muted)]">{action.note}</span>
+                  </span>
+                  <ArrowRight className="h-3.5 w-3.5 text-[var(--text-muted)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--accent)]" />
+                </button>
+              ))}
+            </div>
+          </Panel>
+
+          {/* Deadlines */}
+          <Panel
+            eyebrow="Calendar"
+            title="Upcoming deadlines"
+            bodyClassName="p-4"
+            actions={<CalendarDays className="h-4 w-4 text-[var(--text-muted)]" />}
+          >
+            {upcomingDeadlines.length === 0 ? (
+              <p className="py-2 text-[12px] text-[var(--text-muted)]">
+                No due dates scheduled. Tasks with deadlines will appear here.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {upcomingDeadlines.map((item) => {
+                  const due = new Date(item.due_date);
+                  const isSoon = due - new Date() < 1000 * 60 * 60 * 48;
+                  return (
+                    <div key={item.id} className="flex items-start gap-3">
+                      <span
+                        className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${
+                          isSoon ? 'bg-[var(--warning-strong)]' : 'bg-[var(--border-strong)]'
+                        }`}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[12px] font-medium text-[var(--text-primary)]">
+                          {item.title}
+                        </p>
+                        <p className="text-[10.5px] text-[var(--text-muted)]">{item.projectName}</p>
+                      </div>
+                      <span
+                        className={`shrink-0 text-[10.5px] font-semibold ${
+                          isSoon ? 'text-[var(--warning)]' : 'text-[var(--text-muted)]'
+                        }`}
+                      >
+                        {due.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Panel>
+        </aside>
+      </div>
+
       <CreateProjectModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
-        onProjectCreated={() => {
+        onCreated={() => {
           setIsCreateOpen(false);
           fetchDashboardData();
         }}
@@ -332,7 +461,7 @@ export const DashboardPage = () => {
           isOpen={!!editingProject}
           onClose={() => setEditingProject(null)}
           project={editingProject}
-          onProjectUpdated={() => {
+          onUpdated={() => {
             setEditingProject(null);
             fetchDashboardData();
           }}
@@ -344,7 +473,7 @@ export const DashboardPage = () => {
           isOpen={!!deletingProject}
           onClose={() => setDeletingProject(null)}
           project={deletingProject}
-          onProjectDeleted={() => {
+          onDeleted={() => {
             setDeletingProject(null);
             fetchDashboardData();
           }}

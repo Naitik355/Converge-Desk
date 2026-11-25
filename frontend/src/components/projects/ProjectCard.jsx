@@ -1,16 +1,20 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '../common/Card';
 import { RoleBadge } from '../common/Badge';
-import { FolderKanban, MoreVertical, Edit2, Trash2, ArrowUpRight } from 'lucide-react';
+import { MoreVertical, Edit2, Trash2, ArrowUpRight, FolderKanban } from 'lucide-react';
 
-export const ProjectCard = ({
-  project,
-  onEdit,
-  onDelete,
-}) => {
+const TINTS = [
+  ['var(--accent-soft)', 'var(--accent)'],
+  ['var(--success-soft)', 'var(--success)'],
+  ['var(--warning-soft)', 'var(--warning)'],
+  ['var(--info-soft)', 'var(--info)'],
+];
+
+export const ProjectCard = ({ project, onEdit, onDelete }) => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = React.useState(false);
+
+  const tint = TINTS[(Number(project.id) || 0) % TINTS.length];
 
   const formattedDate = project.created_at
     ? new Date(project.created_at).toLocaleDateString('en-US', {
@@ -21,40 +25,39 @@ export const ProjectCard = ({
     : null;
 
   return (
-    <Card hoverable className="relative flex flex-col justify-between group">
+    <div
+      onClick={() => navigate(`/projects/${project.id}`)}
+      className="group relative flex cursor-pointer flex-col justify-between rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface)] p-5 transition-all duration-150 hover:-translate-y-[1px] hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-lift)]"
+    >
       <div>
-        {/* Header: Icon, Role Badge, Menu */}
-        <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-[var(--btn-radius)] bg-[var(--surface-raised)] text-[var(--signal-teal)] flex items-center justify-center font-bold text-sm shrink-0 border border-[var(--border-subtle)] shadow-xs">
-              <FolderKanban className="w-5 h-5" />
+            <span
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] font-display text-[14px] font-bold"
+              style={{ backgroundColor: tint[0], color: tint[1] }}
+            >
+              {(project.name?.[0] || 'P').toUpperCase()}
+            </span>
+            <div className="min-w-0">
+              <p className="sx-eyebrow">Project</p>
+              <RoleBadge role={project.role} />
             </div>
-            <RoleBadge role={project.role} />
           </div>
 
           {(onEdit || onDelete) && (
-            <div className="relative">
+            <div className="relative" onClick={(e) => e.stopPropagation()}>
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setMenuOpen(!menuOpen);
-                }}
-                className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-raised)] rounded-lg transition-colors cursor-pointer"
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="rounded-[6px] p-1.5 text-[var(--text-muted)] opacity-0 transition-all hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] group-hover:opacity-100 focus:opacity-100 cursor-pointer"
                 aria-label="Project actions"
               >
-                <MoreVertical className="w-4 h-4" />
+                <MoreVertical className="h-4 w-4" />
               </button>
 
               {menuOpen && (
                 <>
-                  <div
-                    className="fixed inset-0 z-30"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMenuOpen(false);
-                    }}
-                  />
-                  <div className="absolute right-0 mt-1 w-36 bg-[var(--surface-card)] rounded-xl shadow-2xl border border-[var(--border-subtle)] p-1 z-40 text-xs">
+                  <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
+                  <div className="absolute right-0 z-40 mt-1.5 w-40 overflow-hidden rounded-[10px] border border-[var(--border-subtle)] bg-[var(--surface)] p-1 shadow-[var(--shadow-menu)]">
                     {onEdit && project.role !== 'viewer' && (
                       <button
                         onClick={(e) => {
@@ -62,10 +65,9 @@ export const ProjectCard = ({
                           setMenuOpen(false);
                           onEdit(project);
                         }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[var(--text-muted)] hover:bg-[var(--surface-raised)] hover:text-[var(--text-primary)] rounded-lg text-left transition-colors cursor-pointer font-mono"
+                        className="flex w-full items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-left text-[12px] text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] cursor-pointer"
                       >
-                        <Edit2 className="w-3.5 h-3.5" />
-                        Edit Project
+                        <Edit2 className="h-3.5 w-3.5" /> Edit project
                       </button>
                     )}
                     {onDelete && project.role === 'owner' && (
@@ -75,10 +77,9 @@ export const ProjectCard = ({
                           setMenuOpen(false);
                           onDelete(project);
                         }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[var(--signal-coral)] hover:bg-rose-500/10 rounded-lg text-left font-medium transition-colors cursor-pointer font-mono"
+                        className="flex w-full items-center gap-2 rounded-[6px] px-2.5 py-1.5 text-left text-[12px] font-medium text-[var(--error)] transition-colors hover:bg-[var(--error-soft)] cursor-pointer"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        Delete Project
+                        <Trash2 className="h-3.5 w-3.5" /> Delete project
                       </button>
                     )}
                   </div>
@@ -88,29 +89,24 @@ export const ProjectCard = ({
           )}
         </div>
 
-        {/* Title and Description */}
-        <h3
-          onClick={() => navigate(`/projects/${project.id}`)}
-          className="font-display text-base font-bold text-[var(--text-primary)] group-hover:text-[var(--signal-teal)] transition-colors cursor-pointer line-clamp-1"
-        >
+        <h3 className="mt-4 font-display text-[15px] font-semibold tracking-[-0.02em] text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)] line-clamp-1">
           {project.name}
         </h3>
-        <p className="mt-1 text-xs text-[var(--text-muted)] line-clamp-2 leading-relaxed min-h-[2rem]">
-          {project.description || 'No description provided.'}
+        <p className="mt-1 min-h-[32px] text-[12px] leading-relaxed text-[var(--text-muted)] line-clamp-2">
+          {project.description || 'No description yet — open the project to add context.'}
         </p>
       </div>
 
-      {/* Footer Info */}
-      <div className="flex items-center justify-between pt-4 mt-4 border-t border-[var(--border-subtle)] text-xs font-mono text-[var(--text-muted)]">
-        <span>{formattedDate ? `CREATED ${formattedDate.toUpperCase()}` : 'ACTIVE // SYNCED'}</span>
-        <button
-          onClick={() => navigate(`/projects/${project.id}`)}
-          className="flex items-center gap-1 font-semibold text-[var(--signal-teal)] hover:opacity-80 transition-colors group/btn cursor-pointer font-mono"
-        >
-          <span>OPEN</span>
-          <ArrowUpRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-        </button>
+      <div className="mt-4 flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
+        <span className="flex items-center gap-1.5 text-[10.5px] text-[var(--text-muted)]">
+          <FolderKanban className="h-3 w-3" />
+          {formattedDate ? `Created ${formattedDate}` : 'Active workspace'}
+        </span>
+        <span className="flex items-center gap-1 font-display text-[11px] font-semibold text-[var(--text-secondary)] transition-colors group-hover:text-[var(--accent)]">
+          Open
+          <ArrowUpRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </span>
       </div>
-    </Card>
+    </div>
   );
 };

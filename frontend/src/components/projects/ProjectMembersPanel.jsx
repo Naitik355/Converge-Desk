@@ -67,30 +67,31 @@ export const ProjectMembersPanel = ({ projectId, isOwner }) => {
   const getUserId = (member) => member.user_id ?? member.id;
 
   return (
-    <section className="max-w-3xl bg-[#0d131c] rounded-2xl border border-slate-800 p-6 space-y-6 shadow-xl text-slate-100">
+    <section className="rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface)] p-5 space-y-6 text-[var(--text-primary)] sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-bold text-white">
-            Project Members
+          <p className="sx-eyebrow">Collaboration</p>
+          <h3 className="mt-1 font-display text-[16px] font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
+            Project members
           </h3>
-          <p className="text-xs text-slate-400 mt-1">
-            Manage who can access this project and their permissions.
+          <p className="mt-1 text-[12px] text-[var(--text-muted)]">
+            Manage who can access this project and what they can do.
           </p>
         </div>
         <button
           type="button"
           onClick={() => void loadMembers()}
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-800 bg-[#090d14] px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-[#121c29] disabled:opacity-50 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-inset)] px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] disabled:opacity-50 transition-colors cursor-pointer"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-emerald-400' : ''}`} /> Refresh
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[var(--accent)]' : ''}`} /> Refresh
         </button>
       </div>
 
       {error && (
         <p
           role="alert"
-          className="rounded-xl border border-rose-900/60 bg-rose-950/30 p-3 text-xs text-rose-300"
+          className="rounded-[10px] border border-[var(--error)]/30 bg-[var(--error-soft)] p-3 text-xs text-[var(--error)]"
         >
           {error}
         </p>
@@ -98,7 +99,7 @@ export const ProjectMembersPanel = ({ projectId, isOwner }) => {
       {notice && (
         <p
           role="status"
-          className="rounded-xl border border-emerald-900/60 bg-emerald-950/30 p-3 text-xs text-emerald-400"
+          className="rounded-[8px] border border-[var(--success)]/25 bg-[var(--success-soft)] p-3 text-[11.5px] text-[var(--success)]"
         >
           {notice}
         </p>
@@ -106,7 +107,7 @@ export const ProjectMembersPanel = ({ projectId, isOwner }) => {
 
       {isOwner && (
         <form
-          className="grid grid-cols-1 sm:grid-cols-[1fr_140px_auto] gap-3 border-b border-slate-800/80 pb-6"
+          className="grid grid-cols-1 sm:grid-cols-[1fr_140px_auto] gap-3 border-b border-[var(--border-subtle)] pb-6"
           onSubmit={(event) => {
             event.preventDefault();
             const cleanUsername = username.trim();
@@ -118,8 +119,8 @@ export const ProjectMembersPanel = ({ projectId, isOwner }) => {
           }}
         >
           <label className="block">
-            <span className="block text-xs font-mono font-semibold text-[var(--text-muted)] mb-1.5">
-              Username or Email Address
+            <span className="mb-1.5 block font-display text-xs font-semibold text-[var(--text-secondary)]">
+              Username or email
             </span>
             <input
               value={username}
@@ -131,7 +132,7 @@ export const ProjectMembersPanel = ({ projectId, isOwner }) => {
             />
           </label>
           <label className="block">
-            <span className="block text-xs font-mono font-semibold text-[var(--text-muted)] mb-1.5">
+            <span className="mb-1.5 block font-display text-xs font-semibold text-[var(--text-secondary)]">
               Role
             </span>
             <select
@@ -147,7 +148,7 @@ export const ProjectMembersPanel = ({ projectId, isOwner }) => {
             <button
               type="submit"
               disabled={saving}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-[var(--btn-radius)] bg-[var(--signal-teal)] px-4 py-2.5 text-xs font-mono font-bold text-black hover:opacity-90 disabled:opacity-50 transition-colors shadow-sm cursor-pointer"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-control)] bg-[var(--ink)] px-4 py-2.5 font-display text-xs font-semibold text-[var(--on-ink)] transition-opacity hover:opacity-90 disabled:opacity-50 cursor-pointer"
             >
               <UserPlus className="w-4 h-4" /> Add Member
             </button>
@@ -205,7 +206,7 @@ export const ProjectMembersPanel = ({ projectId, isOwner }) => {
                             `Updated ${member.username}'s role.`,
                           )
                         }
-                        className="rounded-lg border border-slate-800 bg-[#080c12] px-3 py-1.5 text-xs font-semibold text-slate-300"
+                        className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-inset)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)]"
                       >
                         <option value="EDITOR">Editor</option>
                         <option value="VIEWER">Viewer</option>
@@ -228,7 +229,7 @@ export const ProjectMembersPanel = ({ projectId, isOwner }) => {
                             );
                           }
                         }}
-                        className="rounded-lg border border-slate-800 p-2 text-rose-400 hover:bg-rose-950/40 disabled:opacity-50 transition-colors cursor-pointer"
+                        className="rounded-lg border border-[var(--border-subtle)] p-2 text-[var(--error)] hover:bg-[var(--error-soft)] disabled:opacity-50 transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -237,10 +238,10 @@ export const ProjectMembersPanel = ({ projectId, isOwner }) => {
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold border ${
                         isProjectOwner
-                          ? "bg-amber-950/70 text-amber-400 border-amber-800/80"
+                          ? "bg-[var(--warning-soft)] text-[var(--warning)] border-[var(--warning)]/30/80"
                           : role === "VIEWER"
-                            ? "bg-slate-800 text-slate-400 border-slate-700"
-                            : "bg-emerald-950/70 text-emerald-400 border-emerald-800/80"
+                            ? "bg-[var(--surface-hover)] text-[var(--text-muted)] border-[var(--border-subtle)]"
+                            : "bg-[var(--accent-soft)] text-[var(--accent)] border-[var(--accent)]/25"
                       }`}
                     >
                       {isProjectOwner
@@ -258,24 +259,24 @@ export const ProjectMembersPanel = ({ projectId, isOwner }) => {
       )}
 
       {isOwner && (
-        <div className="space-y-3 border-t border-slate-800/80 pt-5">
-          <h4 className="text-sm font-bold text-slate-200">
+        <div className="space-y-3 border-t border-[var(--border-subtle)] pt-5">
+          <h4 className="text-sm font-bold text-[var(--text-primary)]">
             Project Invitations
           </h4>
 
           {invitations.length === 0 ? (
-            <p className="text-sm text-slate-500">No invitations found.</p>
+            <p className="text-sm text-[var(--text-muted)]">No invitations found.</p>
           ) : (
             invitations.map((invitation) => (
               <div
                 key={invitation.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-slate-800 bg-[#0f1622] p-4 shadow-sm"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-[10px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-4 shadow-sm"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-100">
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">
                     {invitation.email}
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
                     {roleValue(invitation.role)} · Invited{" "}
                     {new Date(invitation.created_at).toLocaleDateString()}
                   </p>
@@ -285,10 +286,10 @@ export const ProjectMembersPanel = ({ projectId, isOwner }) => {
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-semibold border ${
                       invitation.status === "pending"
-                        ? "bg-amber-950/70 text-amber-400 border-amber-800"
+                        ? "bg-[var(--warning-soft)] text-[var(--warning)] border-[var(--warning)]/30"
                         : invitation.status === "accepted"
-                          ? "bg-emerald-950/70 text-emerald-400 border-emerald-800"
-                          : "bg-slate-800 text-slate-400 border-slate-700"
+                          ? "bg-[var(--accent-soft)] text-[var(--accent)] border-emerald-800"
+                          : "bg-[var(--surface-hover)] text-[var(--text-muted)] border-[var(--border-subtle)]"
                     }`}
                   >
                     {invitation?.status
@@ -313,7 +314,7 @@ export const ProjectMembersPanel = ({ projectId, isOwner }) => {
                           );
                         }
                       }}
-                      className="rounded-lg border border-slate-800 p-2 text-rose-400 hover:bg-rose-950/40 disabled:opacity-50 transition-colors cursor-pointer"
+                      className="rounded-lg border border-[var(--border-subtle)] p-2 text-[var(--error)] hover:bg-[var(--error-soft)] disabled:opacity-50 transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

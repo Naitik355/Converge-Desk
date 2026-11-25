@@ -49,15 +49,16 @@ export const DeleteProjectDialog = ({
       }
     >
       <div className="flex items-start gap-3.5">
-        <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-          <AlertTriangle className="w-5 h-5" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-[var(--error-soft)] text-[var(--error)]">
+          <AlertTriangle className="h-5 w-5" />
         </div>
-        <div className="text-sm">
-          <p className="text-slate-800 font-medium">
-            Are you sure you want to delete <span className="font-semibold text-slate-900">"{project.name}"</span>?
+        <div>
+          <p className="text-[13px] font-medium text-[var(--text-primary)]">
+            Delete <span className="font-semibold">{project.name}</span>?
           </p>
-          <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-            This will permanently delete the project and all its associated tasks and whiteboards. This action cannot be undone.
+          <p className="mt-1.5 text-[12px] leading-relaxed text-[var(--text-muted)]">
+            This permanently removes the project along with its tasks, documents and whiteboards.
+            This action cannot be undone.
           </p>
         </div>
       </div>

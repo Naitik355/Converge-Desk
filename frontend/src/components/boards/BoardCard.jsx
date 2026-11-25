@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '../common/Card';
-import { Presentation, MoreVertical, Trash2, ArrowUpRight, Copy, Check, Users } from 'lucide-react';
+import { MoreVertical, Trash2, ArrowUpRight, Copy, Check, Users, Shapes } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 
-export const BoardCard = ({
-  board,
-  projectId,
-  onDelete,
-  canEdit = true,
-}) => {
+export const BoardCard = ({ board, projectId, onDelete, canEdit = true }) => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -27,88 +21,83 @@ export const BoardCard = ({
     e.stopPropagation();
     navigator.clipboard.writeText(board.room_id);
     setCopied(true);
-    success('Room ID Copied', board.room_id);
+    success('Room ID copied', board.room_id);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <Card hoverable className="relative flex flex-col justify-between group">
-      <div>
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-[var(--btn-radius)] bg-[var(--surface-raised)] text-[var(--signal-amber)] flex items-center justify-center font-bold text-sm shrink-0 border border-[var(--border-subtle)]">
-              <Presentation className="w-5 h-5" />
-            </div>
-            <span className="inline-flex items-center gap-1 text-[10px] font-mono font-semibold text-[var(--signal-teal)] bg-[var(--surface-raised)] px-2 py-0.5 rounded-md border border-[var(--border-subtle)]">
-              <Users className="w-3 h-3" /> MULTIPLAYER
-            </span>
+    <div
+      onClick={() => navigate(`/projects/${projectId}/boards/${board.id}`)}
+      className="group cursor-pointer overflow-hidden rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface)] transition-all duration-150 hover:-translate-y-[1px] hover:border-[var(--border-strong)] hover:shadow-[var(--shadow-lift)]"
+    >
+      {/* Canvas preview */}
+      <div className="relative h-[96px] overflow-hidden border-b border-[var(--border-subtle)] bg-[var(--surface-inset)]">
+        <div className="absolute inset-0 sx-dot-grid opacity-70" />
+        <div className="absolute left-4 top-4 h-8 w-14 rounded-[5px] border border-[var(--accent)]/40 bg-[var(--accent-soft)]" />
+        <div className="absolute right-10 top-7 h-6 w-10 rounded-full border border-[var(--border-strong)] bg-[var(--surface)]" />
+        <div className="absolute bottom-3 left-[38%] h-7 w-20 rounded-[5px] border border-[var(--border-strong)] bg-[var(--surface)]" />
+        <svg className="absolute inset-0 h-full w-full text-[var(--border-strong)]" aria-hidden="true">
+          <path d="M72 44 H120" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" />
+          <path d="M190 46 C170 56 150 60 140 72" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" fill="none" />
+        </svg>
+        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-[var(--surface)]/90 px-1.5 py-0.5 text-[9px] font-semibold text-[var(--text-muted)] backdrop-blur">
+          <Users className="h-2.5 w-2.5" /> Live
+        </span>
+
+        {canEdit && onDelete && (
+          <div className="absolute left-2 top-2 z-10" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="rounded-[5px] bg-[var(--surface)]/90 p-1 text-[var(--text-muted)] opacity-0 backdrop-blur transition-all hover:text-[var(--text-primary)] group-hover:opacity-100 focus:opacity-100"
+              aria-label="Board actions"
+            >
+              <MoreVertical className="h-3.5 w-3.5" />
+            </button>
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
+                <div className="absolute left-0 z-40 mt-1 w-36 overflow-hidden rounded-[9px] border border-[var(--border-subtle)] bg-[var(--surface)] p-1 shadow-[var(--shadow-menu)]">
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onDelete(board.id);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-[6px] px-2 py-1.5 text-left text-[11.5px] font-medium text-[var(--error)] hover:bg-[var(--error-soft)]"
+                  >
+                    <Trash2 className="h-3 w-3" /> Delete board
+                  </button>
+                </div>
+              </>
+            )}
           </div>
+        )}
+      </div>
 
-          {canEdit && onDelete && (
-            <div className="relative" onClick={(e) => e.stopPropagation()}>
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-raised)] rounded-lg transition-colors"
-                aria-label="Board actions"
-              >
-                <MoreVertical className="w-4 h-4" />
-              </button>
-
-              {menuOpen && (
-                <>
-                  <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
-                  <div className="absolute right-0 mt-1 w-32 bg-[var(--surface-card)] rounded-xl shadow-xl border border-[var(--border-subtle)] p-1 z-40 text-xs font-mono">
-                    <button
-                      onClick={() => {
-                        setMenuOpen(false);
-                        onDelete(board.id);
-                      }}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[var(--signal-coral)] hover:bg-rose-500/10 rounded-lg text-left font-medium"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      Delete Board
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-display text-[13px] font-semibold leading-snug text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)] line-clamp-1">
+            {board.title}
+          </h3>
+          <ArrowUpRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--text-muted)] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[var(--accent)]" />
         </div>
 
-        {/* Title */}
-        <h3
-          onClick={() => navigate(`/projects/${projectId}/boards/${board.id}`)}
-          className="font-display text-base font-bold text-[var(--text-primary)] group-hover:text-[var(--signal-amber)] transition-colors cursor-pointer line-clamp-1"
-        >
-          {board.title}
-        </h3>
-
-        {/* Room ID badge */}
-        <div className="mt-2.5 flex items-center gap-1.5">
-          <span className="text-[11px] font-mono text-[var(--text-muted)] bg-[var(--surface-canvas)] border border-[var(--border-subtle)] px-2 py-0.5 rounded-md truncate max-w-[200px]">
+        <div className="mt-2.5 flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+          <span className="min-w-0 flex-1 truncate rounded-[5px] border border-[var(--border-subtle)] bg-[var(--surface-inset)] px-2 py-1 font-mono text-[10px] text-[var(--text-muted)]">
             {board.room_id}
           </span>
           <button
             onClick={handleCopyRoomId}
-            className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded transition-colors"
+            className="rounded-[5px] p-1 text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
             title="Copy room ID"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-[var(--signal-teal)]" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="h-3 w-3 text-[var(--success)]" /> : <Copy className="h-3 w-3" />}
           </button>
         </div>
-      </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between pt-4 mt-4 border-t border-[var(--border-subtle)] text-xs font-mono text-[var(--text-muted)]">
-        <span>{formattedDate ? `CREATED ${formattedDate.toUpperCase()}` : 'READY'}</span>
-        <button
-          onClick={() => navigate(`/projects/${projectId}/boards/${board.id}`)}
-          className="flex items-center gap-1 font-semibold text-[var(--signal-teal)] hover:opacity-80 transition-colors group/btn font-mono"
-        >
-          <span>OPEN CANVAS</span>
-          <ArrowUpRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-        </button>
+        <p className="mt-3 text-[10.5px] text-[var(--text-muted)]">
+          {formattedDate ? `Created ${formattedDate}` : 'Multiplayer canvas'}
+        </p>
       </div>
-    </Card>
+    </div>
   );
 };

@@ -3,185 +3,219 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   FolderKanban,
-  CheckSquare,
-  Presentation,
+  ListChecks,
+  FileText,
   Code2,
+  Shapes,
   Video,
+  Settings,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
-  Terminal,
-  Activity,
-  Compass,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Plus,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 
-export const Sidebar = ({
-  isCollapsed,
-  onToggleCollapse,
-  onCloseMobile,
-}) => {
+const NAV_GROUPS = [
+  {
+    label: 'Workspace',
+    items: [
+      { name: 'Dashboard', href: '/', icon: LayoutDashboard, end: true },
+      { name: 'Projects', href: '/projects', icon: FolderKanban },
+      { name: 'Tasks', href: '/tasks', icon: ListChecks },
+      { name: 'Documents', href: '/documents', icon: FileText },
+    ],
+  },
+  {
+    label: 'Studio',
+    items: [
+      { name: 'Whiteboards', href: '/whiteboards', icon: Shapes },
+      { name: 'Code workspace', href: '/code', icon: Code2 },
+      { name: 'Team & meetings', href: '/meetings', icon: Video },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [{ name: 'Settings', href: '/settings', icon: Settings }],
+  },
+];
+
+export const Sidebar = ({ isCollapsed, onToggleCollapse, onCloseMobile }) => {
   const { user, logout, isAuthenticated } = useAuth();
-  const { isBrutalist } = useTheme();
   const navigate = useNavigate();
 
-  const primaryNav = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'Projects', href: '/projects', icon: FolderKanban },
-    { name: 'Sprint Tasks', href: '/tasks', icon: CheckSquare },
-  ];
-
-  const toolsNav = [
-    { name: 'Whiteboards', href: '/whiteboards', icon: Presentation },
-    { name: 'Code Workspace', href: '/code', icon: Code2 },
-    { name: 'Meetings & PiP', href: '/meetings', icon: Video },
-    { name: 'Docs Sandbox', href: '/collaborative-editor-test', icon: Terminal },
-  ];
+  const handleSignOut = async () => {
+    await logout();
+    navigate('/landing');
+  };
 
   return (
     <aside
-      className={`relative flex flex-col h-screen bg-[var(--surface-card)] text-[var(--text-muted)] border-r border-[var(--border-subtle)] transition-all duration-200 select-none ${
-        isBrutalist ? 'border-r-2 border-black' : ''
-      } ${isCollapsed ? 'w-20' : 'w-64'}`}
+      className={`relative flex h-screen flex-col border-r border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--text-secondary)] transition-[width] duration-200 select-none z-20 ${
+        isCollapsed ? 'w-[78px]' : 'w-[264px]'
+      }`}
     >
-      {/* Brand Header */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-[var(--border-subtle)]">
+      {/* Brand */}
+      <div
+        className={`flex h-16 shrink-0 items-center border-b border-[var(--border-subtle)] ${
+          isCollapsed ? 'justify-center px-2' : 'justify-between px-5'
+        }`}
+      >
         <NavLink
           to="/"
           onClick={onCloseMobile}
-          className="flex items-center gap-3 overflow-hidden group focus:outline-none"
+          className="group flex items-center gap-2.5 overflow-hidden focus:outline-none"
         >
-          <div className="w-9 h-9 rounded-lg bg-[var(--surface-raised)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--signal-teal)] shadow-xs shrink-0 group-hover:border-[var(--signal-teal)] transition-colors">
-            <Terminal className="w-4 h-4 font-bold" />
-          </div>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] bg-[var(--ink)] text-[var(--on-ink)] shadow-[var(--shadow-xs)]">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 5.5h7.5M3 10.5h5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <circle cx="12.25" cy="10.5" r="1.6" fill="var(--accent)" />
+            </svg>
+          </span>
           {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="font-display font-extrabold text-sm tracking-tight text-[var(--text-primary)] leading-tight">
-                Converge<span className="text-[var(--signal-teal)]">Desk</span>
+            <span className="flex min-w-0 flex-col leading-tight">
+              <span className="font-display text-[14px] font-bold tracking-[-0.03em] text-[var(--text-primary)]">
+                SyncSpace
               </span>
-            </div>
+              <span className="text-[10px] font-medium tracking-[0.06em] text-[var(--text-muted)]">
+                STUDIO WORKSPACE
+              </span>
+            </span>
           )}
         </NavLink>
 
-        {/* Desktop Collapse Toggle */}
+        {!isCollapsed && (
+          <button
+            onClick={onToggleCollapse}
+            className="hidden h-7 w-7 items-center justify-center rounded-[7px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] md:flex cursor-pointer"
+            title="Collapse sidebar"
+            aria-label="Collapse sidebar"
+          >
+            <PanelLeftClose className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {isCollapsed && (
+        <div className="hidden justify-center border-b border-[var(--border-subtle)] py-2 md:flex">
+          <button
+            onClick={onToggleCollapse}
+            className="flex h-8 w-8 items-center justify-center rounded-[7px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] cursor-pointer"
+            title="Expand sidebar"
+            aria-label="Expand sidebar"
+          >
+            <PanelLeftOpen className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Primary create action */}
+      <div className={isCollapsed ? 'p-2.5' : 'px-3 pt-3.5 pb-1'}>
         <button
-          onClick={onToggleCollapse}
-          className="hidden md:flex items-center justify-center w-7 h-7 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-raised)] transition-colors"
-          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          onClick={() => {
+            navigate('/projects');
+            onCloseMobile?.();
+          }}
+          className={`flex w-full items-center gap-2 rounded-[var(--radius-control)] bg-[var(--ink)] text-[var(--on-ink)] font-display text-[12.5px] font-semibold transition-colors hover:bg-[var(--ink-hover)] cursor-pointer ${
+            isCollapsed ? 'h-9 justify-center' : 'h-9 justify-center px-3'
+          }`}
+          title="Go to projects"
         >
-          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          <Plus className="h-4 w-4 shrink-0" />
+          {!isCollapsed && <span>New project</span>}
         </button>
       </div>
 
-      {/* Nav Links */}
-      <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">
-        {/* Section 1: Primary Navigation */}
-        <div className="space-y-1">
-          {!isCollapsed && (
-            <div className="px-3 pb-1 mono-label text-[var(--text-muted)] text-[10px]">
-              // WORKSPACE
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto px-3 pb-4 pt-2">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.label} className="mt-4 first:mt-2">
+            {!isCollapsed && (
+              <p className="sx-eyebrow px-2.5 pb-1.5">{group.label}</p>
+            )}
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.name}
+                    to={item.href}
+                    end={item.end}
+                    onClick={onCloseMobile}
+                    title={isCollapsed ? item.name : undefined}
+                    className={({ isActive }) =>
+                      `group relative flex items-center gap-2.5 rounded-[8px] font-display text-[12.5px] font-medium transition-colors duration-150 cursor-pointer ${
+                        isCollapsed ? 'h-9 justify-center' : 'h-9 px-2.5'
+                      } ${
+                        isActive
+                          ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
+                          : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]'
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        {isActive && !isCollapsed && (
+                          <span className="absolute left-0 top-1/2 h-4 w-[2px] -translate-y-1/2 rounded-full bg-[var(--accent)]" />
+                        )}
+                        <Icon
+                          className={`h-[17px] w-[17px] shrink-0 ${
+                            isActive ? 'text-[var(--accent)]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]'
+                          }`}
+                          strokeWidth={1.9}
+                        />
+                        {!isCollapsed && <span className="truncate">{item.name}</span>}
+                      </>
+                    )}
+                  </NavLink>
+                );
+              })}
             </div>
-          )}
-          {primaryNav.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.name}
-                to={item.href}
-                end={item.href === '/'}
-                onClick={onCloseMobile}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-lg font-mono text-xs font-medium transition-all duration-150 group ${
-                    isActive
-                      ? 'bg-[var(--surface-raised)] text-[var(--signal-teal)] border border-[var(--signal-teal)] shadow-xs font-bold'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-raised)] border border-transparent'
-                  } ${isCollapsed ? 'justify-center px-0' : ''}`
-                }
-                title={isCollapsed ? item.name : undefined}
-              >
-                <Icon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
-                {!isCollapsed && <span>{item.name}</span>}
-              </NavLink>
-            );
-          })}
-        </div>
-
-        {/* Section 2: Developer Modules */}
-        <div className="space-y-1">
-          {!isCollapsed && (
-            <div className="px-3 pb-1 mono-label text-[var(--text-muted)] text-[10px]">
-              // COLLABORATION
-            </div>
-          )}
-          {toolsNav.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.name}
-                to={item.href}
-                onClick={onCloseMobile}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-lg font-mono text-xs font-medium transition-all duration-150 group ${
-                    isActive
-                      ? 'bg-[var(--surface-raised)] text-[var(--signal-teal)] border border-[var(--signal-teal)] shadow-xs font-bold'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-raised)] border border-transparent'
-                  } ${isCollapsed ? 'justify-center px-0' : ''}`
-                }
-                title={isCollapsed ? item.name : undefined}
-              >
-                <Icon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
-                {!isCollapsed && <span>{item.name}</span>}
-              </NavLink>
-            );
-          })}
-        </div>
+          </div>
+        ))}
       </nav>
 
-      {/* User Section at Bottom */}
-      <div className="p-3 border-t border-[var(--border-subtle)] bg-[var(--surface-canvas)]">
+      {/* Footer / account */}
+      <div className="shrink-0 border-t border-[var(--border-subtle)] p-3">
         {isAuthenticated && user ? (
-          <div
-            className={`flex items-center gap-2.5 p-2 rounded-lg bg-[var(--surface-card)] border border-[var(--border-subtle)] ${
-              isCollapsed ? 'justify-center' : ''
-            }`}
-          >
-            <div className="w-8 h-8 rounded-lg bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--signal-teal)] flex items-center justify-center font-bold font-mono text-xs shrink-0 shadow-xs">
+          isCollapsed ? (
+            <button
+              onClick={handleSignOut}
+              className="flex h-8 w-full items-center justify-center rounded-full bg-[var(--accent-soft)] font-display text-[11px] font-bold text-[var(--accent)]"
+              title={`${user.username} · sign out`}
+            >
               {(user?.username?.[0] || user?.email?.[0] || 'U').toUpperCase()}
-            </div>
-            {!isCollapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold font-mono text-[var(--text-primary)] truncate">
-                  {user?.username || 'User'}
+            </button>
+          ) : (
+            <div className="flex items-center gap-2.5 rounded-[var(--radius-control)] border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-2">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] font-display text-[11.5px] font-bold text-[var(--accent)]">
+                {(user?.username?.[0] || user?.email?.[0] || 'U').toUpperCase()}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-display text-[12px] font-semibold text-[var(--text-primary)]">
+                  {user?.username || 'Member'}
+                </p>
+                <p className="truncate text-[10.5px] text-[var(--text-muted)]">
+                  {user?.email || 'Signed in'}
                 </p>
               </div>
-            )}
-            {!isCollapsed && (
               <button
-                onClick={async () => {
-                  await logout();
-                  navigate('/landing');
-                }}
-                className="p-1.5 text-[var(--text-muted)] hover:text-[var(--signal-coral)] hover:bg-rose-500/10 rounded-lg transition-colors"
+                onClick={handleSignOut}
+                className="rounded-[6px] p-1.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--error-soft)] hover:text-[var(--error)] cursor-pointer"
                 title="Sign out"
                 aria-label="Sign out"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <LogOut className="h-3.5 w-3.5" />
               </button>
-            )}
-          </div>
+            </div>
+          )
         ) : (
-          <div className={`p-1 ${isCollapsed ? 'text-center' : ''}`}>
-            <NavLink
-              to="/login"
-              onClick={onCloseMobile}
-              className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-mono font-semibold text-black bg-[var(--signal-teal)] hover:opacity-90 rounded-lg transition-all shadow-xs"
-            >
-              {!isCollapsed && <span>SIGN IN</span>}
-              <LogOut className="w-3.5 h-3.5 rotate-180" />
-            </NavLink>
-          </div>
+          <button
+            onClick={() => navigate('/login')}
+            className="flex h-9 w-full items-center justify-center rounded-[var(--radius-control)] bg-[var(--ink)] font-display text-xs font-semibold text-[var(--on-ink)]"
+          >
+            {isCollapsed ? 'In' : 'Sign in'}
+          </button>
         )}
       </div>
     </aside>

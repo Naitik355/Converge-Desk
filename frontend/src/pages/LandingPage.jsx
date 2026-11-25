@@ -1,1013 +1,601 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import {
-  Code2,
-  Terminal,
-  Sparkles,
   ArrowRight,
-  Layers,
-  Users,
-  Video,
-  Presentation,
-  CheckSquare,
-  FileText,
-  Shield,
-  Zap,
-  ExternalLink,
-  ChevronRight,
-  Sun,
-  Moon,
-  Layout,
-  Cpu,
-  GitBranch,
-  Play,
   Check,
-  Radio,
-  Sliders,
-  GraduationCap,
+  Moon,
+  Sun,
+  FileText,
+  ListChecks,
+  Shapes,
+  Code2,
+  Video,
+  FolderKanban,
+  Users,
+  Plus,
+  Sparkles,
+  MoveUpRight,
+  Circle,
 } from 'lucide-react';
+
+const MODULES = [
+  {
+    icon: FileText,
+    label: 'Documents',
+    title: 'Writing that stays in the room',
+    body: 'Specs, decisions and meeting notes live beside the work — edited together in real time, never lost in a thread.',
+  },
+  {
+    icon: ListChecks,
+    label: 'Tasks',
+    title: 'A plan everyone can act on',
+    body: 'Board or list, priority or deadline. Move work forward without exporting a single spreadsheet.',
+  },
+  {
+    icon: Shapes,
+    label: 'Whiteboards',
+    title: 'Think before the ticket exists',
+    body: 'Sketch the system, argue about the shape of it, then turn the diagram into the thing you ship.',
+  },
+  {
+    icon: Code2,
+    label: 'Code',
+    title: 'An IDE with the context attached',
+    body: 'Files, tabs and a live editor in the browser, next to the spec that explains why the code exists.',
+  },
+];
+
+const WORKFLOW = [
+  {
+    step: '01',
+    title: 'Capture',
+    body: 'Start with the raw thought. A note, a canvas, a half-formed idea. No template required.',
+  },
+  {
+    step: '02',
+    title: 'Shape',
+    body: 'Turn the thought into a document the team can read, comment on and trust.',
+  },
+  {
+    step: '03',
+    title: 'Plan',
+    body: 'Break the decision into tasks with owners, priorities and dates the team can see.',
+  },
+  {
+    step: '04',
+    title: 'Build',
+    body: 'Move into the code workspace while the plan stays one click away.',
+  },
+];
 
 export const LandingPage = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
-  const { theme, cycleTheme, isDark, isLight, isBrutalist } = useTheme();
+  const { isDark, cycleTheme } = useTheme();
 
-  // Scroll Progress
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [activeTab, setActiveTab] = useState('docs');
-  const [activeWalkthroughStage, setActiveWalkthroughStage] = useState(0);
-
-  // Interactive showcase state
-  const [interactiveDocText, setInteractiveDocText] = useState(
-    '# API Architecture\n\n- Endpoint: `/api/v2/sync/stream`\n- Protocol: WebSockets + Yjs CRDT\n- State: Conflict-free replicated\n'
+  const [docText, setDocText] = useState(
+    '## Release 2.4\n\n- Ship the collaborative editor\n- Tighten the review flow\n- Invite the design team'
   );
-  const [interactiveTasks, setInteractiveTasks] = useState([
-    { id: 1, text: 'Finalize WebRTC media constraints', done: true },
-    { id: 2, text: 'Benchmark Hocuspocus doc sync latency', done: false },
-    { id: 3, text: 'Deploy Monaco vs-dark theme tokens', done: true },
+  const [tasks, setTasks] = useState([
+    { id: 1, text: 'Finalise the workspace spec', done: true },
+    { id: 2, text: 'Review the editor prototype', done: false },
+    { id: 3, text: 'Prep the launch checklist', done: false },
   ]);
-  const [newTaskInput, setNewTaskInput] = useState('');
+  const [newTask, setNewTask] = useState('');
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
-      const currentScroll = window.scrollY;
-      if (totalScroll > 0) {
-        setScrollProgress(currentScroll / totalScroll);
-      }
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const startPath = isAuthenticated ? '/projects' : '/signup';
 
-  const handleToggleTask = (id) => {
-    setInteractiveTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
-    );
-  };
+  const toggleTask = (id) =>
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
 
-  const handleAddTask = (e) => {
+  const addTask = (e) => {
     e.preventDefault();
-    if (!newTaskInput.trim()) return;
-    setInteractiveTasks((prev) => [
-      ...prev,
-      { id: Date.now(), text: newTaskInput.trim(), done: false },
-    ]);
-    setNewTaskInput('');
+    if (!newTask.trim()) return;
+    setTasks((prev) => [...prev, { id: Date.now(), text: newTask.trim(), done: false }]);
+    setNewTask('');
   };
-
-  const walkthroughStages = [
-    {
-      num: '01',
-      status: 'BRAINSTORM',
-      color: 'teal',
-      title: '01 — Brainstorm',
-      desc: 'Bring your team together to explore ideas, discuss possibilities, and plan your next move.',
-      badge: 'Idea Ideation',
-      meta: 'REALTIME CURSORS // COLLABORATIVE CANVAS',
-      preview: {
-        type: 'canvas',
-        elements: ['[Idea Concept] ──> [Possibilities]', '└──> [Actionable Work]'],
-      },
-    },
-    {
-      num: '02',
-      status: 'DOCUMENT',
-      color: 'amber',
-      title: '02 — Document',
-      desc: 'Capture requirements, architecture decisions, and project knowledge in one shared workspace.',
-      badge: 'Shared Knowledge',
-      meta: 'CRDT BACKED // ZERO DATA COLLISIONS',
-      preview: {
-        type: 'docs',
-        snippet: '# Project Requirements & Architecture Specs',
-      },
-    },
-    {
-      num: '03',
-      status: 'BUILD',
-      color: 'azure',
-      title: '03 — Build',
-      desc: 'Collaborate on implementation and keep development connected to the original plan.',
-      badge: 'Implementation',
-      meta: 'CONNECTED DEV // MONACO WORKSPACE',
-      preview: {
-        type: 'code',
-        snippet: 'export function buildSolution(requirements) {...}',
-      },
-    },
-    {
-      num: '04',
-      status: 'EXECUTE',
-      color: 'violet',
-      title: '04 — Execute',
-      desc: 'Turn plans into tasks, assign responsibilities, and move your project forward together.',
-      badge: 'Clear Responsibilities',
-      meta: 'TASK PIPELINE // SPRINT PROGRESS',
-      preview: {
-        type: 'tasks',
-        count: 'Deliverables on Track',
-      },
-    },
-  ];
 
   return (
-    <div className="min-h-screen bg-[var(--surface-canvas)] text-[var(--text-primary)] transition-colors duration-200 relative selection:bg-[var(--signal-teal)] selection:text-black">
-      {/* Fixed Scroll Progress Bar */}
-      <div
-        className="scroll-progress-bar"
-        style={{ transform: `scaleX(${scrollProgress})` }}
-      />
+    <div className="min-h-screen bg-[var(--canvas)] text-[var(--text-primary)] selection:bg-[var(--accent-soft)]">
+      {/* ============ NAV ============ */}
+      <header className="sticky top-0 z-40 border-b border-[var(--border-subtle)] bg-[var(--surface-glass)] backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-[1120px] items-center justify-between gap-4 px-5 sm:px-6">
+          <button onClick={() => navigate('/')} className="flex items-center gap-2.5 cursor-pointer">
+            <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[var(--ink)] text-[var(--on-ink)]">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3 5.5h7.5M3 10.5h5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="12.25" cy="10.5" r="1.6" fill="var(--accent)" />
+              </svg>
+            </span>
+            <span className="font-display text-[15px] font-bold tracking-[-0.03em]">SyncSpace</span>
+          </button>
 
-      {/* Background Ambient Accents & Developer Grid */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[var(--signal-teal)] opacity-[0.035] rounded-full blur-[140px]" />
-        <div className="absolute top-1/3 right-10 w-[500px] h-[500px] bg-[var(--signal-violet)] opacity-[0.035] rounded-full blur-[140px]" />
-        <div className="absolute inset-0 blueprint-grid opacity-40" />
-      </div>
+          <nav className="hidden items-center gap-7 md:flex">
+            {[
+              ['Modules', '#modules'],
+              ['Workflow', '#workflow'],
+              ['Try it', '#demo'],
+            ].map(([label, href]) => (
+              <a
+                key={label}
+                href={href}
+                className="font-display text-[12.5px] font-medium text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
 
-      {/* ==================================================
-          1. FLOATING TOP NAVIGATION
-         ================================================== */}
-      <header className="fixed top-4 left-0 right-0 z-50 px-4 md:px-8">
-        <nav className="max-w-6xl mx-auto glass-nav px-4 py-3 flex items-center justify-between transition-all duration-200">
-          {/* Logo & Technical Identity */}
-          <div
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2.5 cursor-pointer select-none group"
-          >
-            <div className="w-8 h-8 rounded-lg bg-[var(--surface-raised)] border border-[var(--border-subtle)] flex items-center justify-center text-[var(--signal-teal)] group-hover:border-[var(--signal-teal)] transition-colors">
-              <Terminal className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="font-display font-extrabold text-sm tracking-tight text-[var(--text-primary)]">
-                Converge<span className="text-[var(--signal-teal)]">Desk</span>
-              </span>
-              <span className="hidden sm:inline-block ml-2 text-[10px] font-mono text-[var(--text-muted)] border border-[var(--border-subtle)] px-1.5 py-0.2 rounded">
-                v2.4
-              </span>
-            </div>
-          </div>
-
-          {/* Anchor Links */}
-          <div className="hidden md:flex items-center gap-6 text-xs font-mono font-medium text-[var(--text-muted)]">
-            <a href="#workflow" className="hover:text-[var(--text-primary)] transition-colors">
-              // WORKFLOW
-            </a>
-            <a href="#features" className="hover:text-[var(--text-primary)] transition-colors">
-              // FEATURES
-            </a>
-            <a href="#interactive" className="hover:text-[var(--text-primary)] transition-colors">
-              // LIVE DEMO
-            </a>
-            <a href="#metrics" className="hover:text-[var(--text-primary)] transition-colors">
-              // METRICS
-            </a>
-          </div>
-
-          {/* Actions & Theme Switcher */}
-          <div className="flex items-center gap-2.5">
-            {/* Theme Toggle Button: 2 Themes (Light Brutalist & Dark Brutalist) */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={cycleTheme}
-              className="p-2 rounded-[var(--btn-radius)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] hover:border-[var(--text-muted)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-1.5 text-xs font-mono"
-              title={`Switch to ${isDark ? 'Light Brutalist' : 'Dark Brutalist'}`}
+              className="flex h-8 w-8 items-center justify-center rounded-[7px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] cursor-pointer"
+              aria-label="Toggle theme"
             >
-              {isDark ? (
-                <Moon className="w-3.5 h-3.5 text-[var(--signal-teal)]" />
-              ) : (
-                <Sun className="w-3.5 h-3.5 text-[var(--signal-amber)]" />
-              )}
-              <span className="hidden lg:inline text-[10px] uppercase font-semibold">
-                {isDark ? 'DARK BRUTALIST' : 'LIGHT BRUTALIST'}
-              </span>
+              {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </button>
-
             {isAuthenticated ? (
               <button
                 onClick={() => navigate('/projects')}
-                className="px-3.5 py-1.5 rounded-lg bg-[var(--signal-teal)] text-black font-semibold text-xs flex items-center gap-1.5 hover:opacity-90 transition-opacity font-mono shadow-xs"
+                className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--ink)] px-4 font-display text-[12px] font-semibold text-[var(--on-ink)] transition-colors hover:bg-[var(--ink-hover)] cursor-pointer"
               >
-                <span>OPEN APP</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                Open workspace <ArrowRight className="h-3.5 w-3.5" />
               </button>
             ) : (
               <>
                 <button
                   onClick={() => navigate('/login')}
-                  className="px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                  className="hidden h-9 items-center rounded-full px-3.5 font-display text-[12px] font-semibold text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] sm:inline-flex cursor-pointer"
                 >
-                  Sign In
+                  Sign in
                 </button>
                 <button
                   onClick={() => navigate('/signup')}
-                  className="px-3.5 py-1.5 rounded-lg bg-[var(--signal-teal)] text-black font-semibold text-xs flex items-center gap-1.5 hover:opacity-90 transition-opacity font-mono shadow-xs"
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--ink)] px-4 font-display text-[12px] font-semibold text-[var(--on-ink)] transition-colors hover:bg-[var(--ink-hover)] cursor-pointer"
                 >
-                  <span>GET STARTED</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  Start free
                 </button>
               </>
             )}
           </div>
-        </nav>
+        </div>
       </header>
 
-      <main className="relative z-10 pt-24 space-y-24 md:space-y-36">
-        {/* ==================================================
-            2. HERO SECTION
-           ================================================== */}
-        <section className="min-h-[85vh] flex flex-col justify-center px-4 md:px-8 max-w-6xl mx-auto pt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            {/* Left Column: Technical Narrative & CTAs */}
-            <div className="lg:col-span-6 space-y-6">
-              {/* Technical Metadata Stamp */}
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--signal-teal)] text-[11px] font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--signal-teal)] animate-pulse" />
-                <span>CONVERGEDESK // WORKSPACE CORE</span>
-                <span className="text-[var(--border-subtle)]">|</span>
-                <span className="text-[var(--text-muted)]">IDEA TO IMPLEMENTATION</span>
+      <main>
+        {/* ============ HERO ============ */}
+        <section className="relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[520px] sx-marketing-grid opacity-60" />
+          <div className="relative mx-auto max-w-[1120px] px-5 pb-16 pt-16 sm:px-6 sm:pt-24">
+            <div className="mx-auto max-w-3xl text-center">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-1.5 shadow-[var(--shadow-xs)]">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--accent)]" />
+                <span className="font-display text-[11px] font-semibold tracking-[0.02em] text-[var(--text-secondary)]">
+                  Docs, tasks, boards and code — one workspace
+                </span>
               </div>
 
-              {/* Display Headline */}
-              <h1 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] leading-[1.08] tracking-tight text-[var(--text-primary)]">
-                One Workspace. From <span className="text-[var(--signal-teal)]">Idea to Implementation.</span>
+              <h1 className="sx-display-xl mt-6">
+                From the first idea
+                <br />
+                to the{' '}
+                <span className="relative whitespace-nowrap text-[var(--accent)]">
+                  shipped work
+                  <svg
+                    className="absolute -bottom-2 left-0 h-2 w-full text-[var(--accent)] opacity-40"
+                    viewBox="0 0 300 8"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                  >
+                    <path d="M2 6C60 2 180 1 298 5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
+                  </svg>
+                </span>
+                .
               </h1>
 
-              {/* Supporting Technical Card */}
-              <div className="glass-card p-4 text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed border-l-2 border-l-[var(--signal-teal)]">
-                Bring your team’s ideas, documents, code, and tasks together in one collaborative workspace. Spend less time switching between tools and more time building great things together.
-              </div>
+              <p className="mx-auto mt-7 max-w-xl text-[16px] leading-[1.65] text-[var(--text-secondary)]">
+                SyncSpace keeps the thinking, the plan and the build in the same place — so your
+                team spends less time switching tools and more time making progress.
+              </p>
 
-              {/* CTAs */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
+              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <button
-                  onClick={() => navigate(isAuthenticated ? '/projects' : '/signup')}
-                  className="px-5 py-3 rounded-[var(--btn-radius)] bg-[var(--signal-teal)] text-black font-bold text-xs sm:text-sm font-mono flex items-center gap-2 hover:opacity-95 transition-all shadow-md active:translate-y-0.5"
+                  onClick={() => navigate(startPath)}
+                  className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-7 font-display text-[13.5px] font-semibold text-white shadow-[var(--shadow-lift)] transition-all hover:bg-[var(--accent-strong)] active:translate-y-[1px] sm:w-auto cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  <span>GET STARTED</span>
-                  <ArrowRight className="w-4 h-4" />
+                  Start building free <ArrowRight className="h-4 w-4" />
                 </button>
-
                 <button
-                  onClick={() => navigate(isAuthenticated ? '/projects' : '/collaborative-editor-test')}
-                  className="px-4 py-3 rounded-[var(--btn-radius)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--text-primary)] font-mono text-xs sm:text-sm hover:border-[var(--signal-teal)] transition-colors flex items-center gap-2"
+                  onClick={() => navigate(isAuthenticated ? '/projects' : '/code')}
+                  className="inline-flex h-[52px] w-full items-center justify-center gap-2 rounded-full border border-[var(--border-strong)] bg-[var(--surface)] px-6 font-display text-[13.5px] font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-hover)] sm:w-auto cursor-pointer"
                 >
-                  <Terminal className="w-4 h-4 text-[var(--signal-teal)]" />
-                  <span>EXPLORE WORKSPACE</span>
+                  Explore the workspace
                 </button>
               </div>
 
-              {/* Technical Feature Indicators */}
-              <div className="grid grid-cols-2 gap-2 pt-2 text-[11px] font-mono text-[var(--text-muted)]">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-xs bg-[var(--signal-teal)]" />
-                  <span>REAL-TIME COLLABORATION</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-xs bg-[var(--signal-amber)]" />
-                  <span>COLLABORATIVE DOCUMENTS</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-xs bg-[var(--signal-azure)]" />
-                  <span>PLAN AND ORGANIZE</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-xs bg-[var(--signal-violet)]" />
-                  <span>CONNECTED WORKFLOW</span>
-                </div>
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11.5px] text-[var(--text-muted)]">
+                {['No setup required', 'Real-time by default', 'Free for small teams'].map((item) => (
+                  <span key={item} className="inline-flex items-center gap-1.5">
+                    <Check className="h-3.5 w-3.5 text-[var(--success)]" /> {item}
+                  </span>
+                ))}
               </div>
             </div>
 
-            {/* Right Column: Real Interactive Product Preview */}
-            <div className="lg:col-span-6 relative">
-              {/* Main Product Container */}
-              <div className="glass-card overflow-hidden border-2 border-[var(--border-subtle)] shadow-2xl relative">
-                {/* Window Header */}
-                <div className="px-4 py-2.5 bg-[var(--surface-raised)] border-b border-[var(--border-subtle)] flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--signal-coral)]" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--signal-amber)]" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-[var(--signal-teal)]" />
-                    <span className="ml-2 font-mono text-[11px] text-[var(--text-muted)] font-semibold">
-                      workspace // project-sprint-alpha
+            {/* Product mock */}
+            <div className="relative mx-auto mt-14 max-w-5xl">
+              <div className="absolute -inset-x-6 -bottom-6 top-10 rounded-[28px] bg-[var(--accent-soft)] blur-2xl opacity-70" aria-hidden="true" />
+              <div className="relative overflow-hidden rounded-[18px] border border-[var(--border-subtle)] bg-[var(--surface)] shadow-[var(--shadow-menu)]">
+                <div className="flex items-center gap-3 border-b border-[var(--border-subtle)] bg-[var(--surface-raised)] px-4 py-2.5">
+                  <div className="flex gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[var(--border-strong)]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-[var(--border-strong)]" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-[var(--border-strong)]" />
+                  </div>
+                  <div className="mx-auto hidden items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-1 sm:flex">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
+                    <span className="font-mono text-[10px] text-[var(--text-muted)]">syncspace.app/workspace</span>
+                  </div>
+                  <span className="ml-auto rounded-full bg-[var(--success-soft)] px-2 py-0.5 font-display text-[10px] font-semibold text-[var(--success)]">
+                    3 online
+                  </span>
+                </div>
+
+                <div className="flex min-h-[360px]">
+                  {/* mini rail */}
+                  <div className="hidden w-[52px] shrink-0 flex-col items-center gap-3 border-r border-[var(--border-subtle)] bg-[var(--surface-raised)] py-4 sm:flex">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-[var(--ink)] text-[var(--on-ink)]">
+                      <span className="font-display text-[10px] font-bold">S</span>
                     </span>
+                    {[FolderKanban, ListChecks, FileText, Shapes, Code2].map((Icon, i) => (
+                      <span
+                        key={i}
+                        className={`flex h-7 w-7 items-center justify-center rounded-[7px] ${
+                          i === 1 ? 'bg-[var(--accent-soft)] text-[var(--accent)]' : 'text-[var(--text-muted)]'
+                        }`}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                      </span>
+                    ))}
                   </div>
 
-                  {/* Floating Status Badge */}
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[var(--surface-canvas)] border border-[var(--border-subtle)] text-[10px] font-mono text-[var(--signal-teal)]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--signal-teal)] animate-pulse" />
-                    <span>PEER SYNCED (3 PEERS)</span>
-                  </div>
-                </div>
-
-                {/* Sub-nav Mode Switcher inside Preview */}
-                <div className="flex items-center border-b border-[var(--border-subtle)] bg-[var(--surface-canvas)] px-2 text-xs font-mono">
-                  <button
-                    onClick={() => setActiveTab('docs')}
-                    className={`px-3 py-2 border-b-2 transition-colors flex items-center gap-1.5 ${
-                      activeTab === 'docs'
-                        ? 'border-[var(--signal-teal)] text-[var(--signal-teal)] font-bold'
-                        : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                    }`}
-                  >
-                    <FileText className="w-3.5 h-3.5" />
-                    <span>ARCHITECTURE.MD</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('canvas')}
-                    className={`px-3 py-2 border-b-2 transition-colors flex items-center gap-1.5 ${
-                      activeTab === 'canvas'
-                        ? 'border-[var(--signal-amber)] text-[var(--signal-amber)] font-bold'
-                        : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                    }`}
-                  >
-                    <Presentation className="w-3.5 h-3.5" />
-                    <span>SYSTEM_BOARD</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('code')}
-                    className={`px-3 py-2 border-b-2 transition-colors flex items-center gap-1.5 ${
-                      activeTab === 'code'
-                        ? 'border-[var(--signal-azure)] text-[var(--signal-azure)] font-bold'
-                        : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                    }`}
-                  >
-                    <Code2 className="w-3.5 h-3.5" />
-                    <span>GATEWAY.PY</span>
-                  </button>
-                </div>
-
-                {/* Interactive Simulated Preview Content */}
-                <div className="p-5 font-mono text-xs min-h-[290px] bg-[var(--surface-canvas)] flex flex-col justify-between">
-                  {activeTab === 'docs' && (
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)] border-b border-[var(--border-subtle)] pb-2">
-                        <span>Hocuspocus Provider: ws://localhost:1234</span>
-                        <span className="text-[var(--signal-teal)]">● Connected</span>
+                  {/* main */}
+                  <div className="min-w-0 flex-1 p-4 sm:p-5">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-display text-[13px] font-semibold">Sprint 14</p>
+                        <p className="text-[10.5px] text-[var(--text-muted)]">Product team · 8 tasks</p>
                       </div>
-                      <div className="p-3 bg-[var(--surface-card)] rounded-lg border border-[var(--border-subtle)] space-y-1 text-[var(--text-primary)]">
-                        <p className="text-[var(--signal-teal)] font-bold"># Real-Time Project Milestone Specs</p>
-                        <p className="text-[var(--text-muted)]">
-                          - Yjs CRDT ensures atomic conflict-free mutations across tabs.
-                        </p>
-                        <p className="text-[var(--text-muted)]">
-                          - Supports drag-and-drop local file uploads (.md, .txt, .html).
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)]">
-                        <span className="px-1.5 py-0.5 rounded bg-[var(--surface-raised)] border border-[var(--border-subtle)]">
-                          WORDS: 342
-                        </span>
-                        <span className="px-1.5 py-0.5 rounded bg-[var(--surface-raised)] border border-[var(--border-subtle)]">
-                          COLLABORATORS: ALICE, BOB, YOU
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === 'canvas' && (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)] border-b border-[var(--border-subtle)] pb-2">
-                        <span>Excalidraw Multiplayer Canvas ID: board-49</span>
-                        <span className="text-[var(--signal-amber)]">● Sync Active</span>
-                      </div>
-                      <div className="h-36 rounded-lg bg-[var(--surface-card)] border border-[var(--border-subtle)] flex items-center justify-center relative p-3">
-                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px]">
-                          Wireframe Grid 1:1
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="p-2.5 rounded-lg border-2 border-emerald-500/60 bg-[var(--surface-raised)] text-center text-[10px]">
-                            UI Client (React)
-                          </div>
-                          <span className="text-[var(--signal-amber)]">⇄</span>
-                          <div className="p-2.5 rounded-lg border-2 border-teal-500/60 bg-[var(--surface-raised)] text-center text-[10px]">
-                            Django API Core
-                          </div>
-                          <span className="text-[var(--signal-violet)]">⇄</span>
-                          <div className="p-2.5 rounded-lg border-2 border-violet-500/60 bg-[var(--surface-raised)] text-center text-[10px]">
-                            Postgres DB
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === 'code' && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-[11px] text-[var(--text-muted)] border-b border-[var(--border-subtle)] pb-2">
-                        <span>Monaco Language Service: Python 3.12</span>
-                        <span className="text-[var(--signal-azure)]">● Ready</span>
-                      </div>
-                      <pre className="p-3 bg-[var(--surface-card)] rounded-lg border border-[var(--border-subtle)] text-[11px] text-[var(--signal-azure)] leading-relaxed overflow-x-auto">
-{`class ProjectCollaborationView(APIView):
-    permission_classes = [IsAuthenticated]
-    def get(self, request, pk):
-        doc = get_object_or_404(ProjectDocuments, pk=pk)
-        return Response({"token": generate_yjs_token(request.user)})`}
-                      </pre>
-                    </div>
-                  )}
-
-                  {/* Simulated PiP Mini Meeting Badge */}
-                  <div className="mt-3 p-2 rounded-lg bg-[var(--surface-raised)] border border-[var(--border-subtle)] flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Video className="w-3.5 h-3.5 text-[var(--signal-teal)]" />
-                      <span className="text-[11px] font-semibold text-[var(--text-primary)]">
-                        Huddle: sprint-standup
+                      <span className="rounded-full border border-[var(--border-subtle)] bg-[var(--surface-inset)] px-2.5 py-1 text-[10px] font-medium text-[var(--text-muted)]">
+                        This week
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-[var(--signal-teal)] animate-ping" />
-                      <span className="text-[10px] text-[var(--text-muted)]">3 active</span>
+
+                    <div className="mt-4 grid grid-cols-3 gap-2">
+                      {[
+                        ['In progress', '4', 'var(--warning)'],
+                        ['In review', '2', 'var(--accent)'],
+                        ['Done', '6', 'var(--success)'],
+                      ].map(([label, value, color]) => (
+                        <div key={label} className="rounded-[9px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-2.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: color }} />
+                            <span className="text-[9.5px] text-[var(--text-muted)]">{label}</span>
+                          </div>
+                          <p className="mt-1 font-display text-[17px] font-bold tracking-tight">{value}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      {[
+                        ['To do', ['Draft API contract', 'Review empty states']],
+                        ['In progress', ['Editor presence layer']],
+                        ['Done', ['Workspace shell']],
+                      ].map(([label, items]) => (
+                        <div key={label} className="rounded-[9px] bg-[var(--surface-inset)] p-2">
+                          <p className="px-0.5 pb-1.5 font-display text-[9.5px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+                            {label}
+                          </p>
+                          <div className="space-y-1.5">
+                            {items.map((item) => (
+                              <div key={item} className="rounded-[7px] border border-[var(--border-subtle)] bg-[var(--surface)] p-2">
+                                <p className="text-[10px] font-medium leading-snug text-[var(--text-primary)]">{item}</p>
+                                <div className="mt-1.5 flex items-center justify-between">
+                                  <span className="h-1 w-6 rounded-full bg-[var(--border-strong)]" />
+                                  <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[7px] font-bold text-[var(--accent)]">
+                                    A
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                            <div className="flex items-center justify-center gap-1 rounded-[7px] border border-dashed border-[var(--border-strong)] py-1.5 text-[9px] text-[var(--text-muted)]">
+                              <Plus className="h-2.5 w-2.5" /> Add
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* right rail */}
+                  <div className="hidden w-[190px] shrink-0 border-l border-[var(--border-subtle)] p-4 lg:block">
+                    <p className="sx-eyebrow">Activity</p>
+                    <div className="mt-3 space-y-3.5">
+                      {[
+                        ['Maya', 'edited the release doc', '2m'],
+                        ['Arun', 'moved a task to review', '14m'],
+                        ['Design', 'added 3 frames to the board', '1h'],
+                      ].map(([who, what, when]) => (
+                        <div key={what} className="flex gap-2">
+                          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--surface-inset)] text-[8px] font-bold text-[var(--text-secondary)]">
+                            {who[0]}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-[9.5px] leading-snug text-[var(--text-secondary)]">
+                              <span className="font-semibold text-[var(--text-primary)]">{who}</span> {what}
+                            </p>
+                            <p className="mt-0.5 text-[9px] text-[var(--text-muted)]">{when} ago</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-5 rounded-[9px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <Video className="h-3 w-3 text-[var(--accent)]" />
+                        <span className="text-[9.5px] font-semibold">Huddle live</span>
+                      </div>
+                      <p className="mt-1 text-[9px] text-[var(--text-muted)]">3 people in the room</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+        </section>
 
-          {/* Bottom Scroll Indicator */}
-          <div className="flex justify-center pt-10">
-            <a
-              href="#marquee"
-              className="flex flex-col items-center gap-1 text-[10px] font-mono text-[var(--text-muted)] hover:text-[var(--signal-teal)] transition-colors"
-            >
-              <span>EXPLORE CAPABILITIES</span>
-              <span className="animate-bounce">↓</span>
-            </a>
+        {/* ============ MODULE STRIP ============ */}
+        <section className="border-y border-[var(--border-subtle)] bg-[var(--surface)]">
+          <div className="mx-auto grid max-w-[1120px] grid-cols-2 divide-x divide-[var(--border-subtle)] px-5 sm:grid-cols-4 sm:px-6">
+            {[
+              [FileText, 'Documents', 'Live, linked and readable'],
+              [ListChecks, 'Tasks', 'Boards and lists that agree'],
+              [Shapes, 'Whiteboards', 'Canvas for the messy part'],
+              [Code2, 'Code', 'Editor with context'],
+            ].map(([Icon, name, note]) => (
+              <div key={name} className="flex items-center gap-3 px-4 py-5 first:pl-0 last:pr-0 sm:px-6">
+                <Icon className="h-4 w-4 shrink-0 text-[var(--accent)]" />
+                <div>
+                  <p className="font-display text-[12px] font-semibold">{name}</p>
+                  <p className="text-[10.5px] text-[var(--text-muted)]">{note}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
-        {/* ==================================================
-            3. CONTINUOUS TECHNICAL MARQUEE / TICKER
-           ================================================== */}
-        <section id="marquee" className="border-y border-[var(--border-subtle)] bg-[var(--surface-raised)] py-3 overflow-hidden select-none">
-          <div className="marquee-container">
-            <div className="marquee-content font-mono text-xs font-semibold tracking-wider text-[var(--text-muted)]">
-              <span>ONE WORKSPACE</span>
-              <span className="text-[var(--signal-teal)]">◆</span>
-              <span>FROM IDEA TO IMPLEMENTATION</span>
-              <span className="text-[var(--signal-amber)]">◆</span>
-              <span>REAL-TIME COLLABORATION</span>
-              <span className="text-[var(--signal-azure)]">◆</span>
-              <span>COLLABORATIVE DOCUMENTS</span>
-              <span className="text-[var(--signal-violet)]">◆</span>
-              <span>PLAN AND ORGANIZE PROJECTS</span>
-              <span className="text-[var(--signal-coral)]">◆</span>
-              <span>CONNECTED WORKFLOW</span>
-              <span className="text-[var(--signal-teal)]">◆</span>
-              <span>AI-POWERED PRODUCTIVITY</span>
-              <span className="text-[var(--signal-amber)]">◆</span>
-              <span>LESS SWITCHING. MORE BUILDING.</span>
-              <span className="text-[var(--signal-azure)]">◆</span>
-            </div>
-            {/* Seamless duplicate for continuous looping */}
-            <div className="marquee-content font-mono text-xs font-semibold tracking-wider text-[var(--text-muted)]" aria-hidden="true">
-              <span>ONE WORKSPACE</span>
-              <span className="text-[var(--signal-teal)]">◆</span>
-              <span>FROM IDEA TO IMPLEMENTATION</span>
-              <span className="text-[var(--signal-amber)]">◆</span>
-              <span>REAL-TIME COLLABORATION</span>
-              <span className="text-[var(--signal-azure)]">◆</span>
-              <span>COLLABORATIVE DOCUMENTS</span>
-              <span className="text-[var(--signal-violet)]">◆</span>
-              <span>PLAN AND ORGANIZE PROJECTS</span>
-              <span className="text-[var(--signal-coral)]">◆</span>
-              <span>CONNECTED WORKFLOW</span>
-              <span className="text-[var(--signal-teal)]">◆</span>
-              <span>AI-POWERED PRODUCTIVITY</span>
-              <span className="text-[var(--signal-amber)]">◆</span>
-              <span>LESS SWITCHING. MORE BUILDING.</span>
-              <span className="text-[var(--signal-azure)]">◆</span>
-            </div>
-          </div>
-        </section>
-
-        {/* ==================================================
-            4. SCROLL-DRIVEN PRODUCT WALKTHROUGH
-           ================================================== */}
-        <section id="workflow" className="px-4 md:px-8 max-w-6xl mx-auto space-y-8">
-          <div className="space-y-2">
-            <div className="mono-label text-[var(--signal-teal)]">
-              // FROM IDEAS TO REAL PROGRESS
-            </div>
-            <h2 className="font-display font-extrabold text-2xl sm:text-3xl md:text-4xl tracking-tight text-[var(--text-primary)]">
-              From Ideas to Real Progress
-            </h2>
-            <p className="text-xs sm:text-sm text-[var(--text-muted)] max-w-2xl">
-              Great projects begin with an idea. ConvergeDesk helps your team turn that idea into organized, actionable work.
+        {/* ============ WORKFLOW ============ */}
+        <section id="workflow" className="mx-auto max-w-[1120px] px-5 py-20 sm:px-6 sm:py-24">
+          <div className="max-w-2xl">
+            <p className="sx-eyebrow">One continuous workflow</p>
+            <h2 className="sx-display-l mt-3">The handoffs were the problem.</h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-[var(--text-secondary)]">
+              Every tool switch loses a little context. SyncSpace removes the switch, so a decision
+              made in a document is still visible when the code gets written.
             </p>
           </div>
 
-          {/* Desktop Interactive Stage Stepper */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-            {/* Stage Selector Column */}
-            <div className="md:col-span-5 space-y-2.5">
-              {walkthroughStages.map((stage, idx) => (
-                <div
-                  key={stage.num}
-                  onClick={() => setActiveWalkthroughStage(idx)}
-                  className={`p-3.5 rounded-[var(--card-radius)] border cursor-pointer transition-all duration-200 select-none ${
-                    activeWalkthroughStage === idx
-                      ? 'bg-[var(--surface-raised)] border-[var(--signal-teal)] shadow-md translate-x-1'
-                      : 'bg-[var(--surface-card)] border-[var(--border-subtle)] hover:border-[var(--text-muted)]'
+          <div className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--border-subtle)] sm:grid-cols-2 lg:grid-cols-4">
+            {WORKFLOW.map((item) => (
+              <div key={item.step} className="group bg-[var(--surface)] p-6 transition-colors hover:bg-[var(--surface-raised)]">
+                <div className="flex items-center justify-between">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--surface-inset)] font-mono text-[10px] text-[var(--text-muted)]">
+                    {item.step}
+                  </span>
+                  <ArrowRight className="h-3.5 w-3.5 text-[var(--border-strong)] transition-all group-hover:translate-x-0.5 group-hover:text-[var(--accent)]" />
+                </div>
+                <h3 className="mt-5 font-display text-[15px] font-semibold">{item.title}</h3>
+                <p className="mt-2 text-[12.5px] leading-relaxed text-[var(--text-muted)]">{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ============ MODULES BENTO ============ */}
+        <section id="modules" className="border-y border-[var(--border-subtle)] bg-[var(--surface)]">
+          <div className="mx-auto max-w-[1120px] px-5 py-20 sm:px-6 sm:py-24">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <div className="max-w-xl">
+                <p className="sx-eyebrow">The modules</p>
+                <h2 className="sx-display-l mt-3">Everything the work touches.</h2>
+              </div>
+              <p className="max-w-sm text-[13px] leading-relaxed text-[var(--text-muted)]">
+                Four focused surfaces, one shared language. Each one is useful alone; together they
+                close the gap between thinking and building.
+              </p>
+            </div>
+
+            <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-2">
+              {MODULES.map((module, index) => (
+                <article
+                  key={module.label}
+                  className={`group relative overflow-hidden rounded-[var(--radius-panel)] border border-[var(--border-subtle)] p-6 transition-colors hover:border-[var(--border-strong)] ${
+                    index === 0 ? 'bg-[var(--accent-soft)] border-transparent' : 'bg-[var(--surface-raised)]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold text-[var(--signal-teal)]">
-                      STAGE {stage.num}
+                    <span
+                      className={`flex h-9 w-9 items-center justify-center rounded-[10px] border ${
+                        index === 0
+                          ? 'border-transparent bg-[var(--accent)] text-white'
+                          : 'border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--accent)]'
+                      }`}
+                    >
+                      <module.icon className="h-4 w-4" />
                     </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--surface-canvas)] border border-[var(--border-subtle)] text-[var(--text-muted)]">
-                      {stage.status}
+                    <span className="font-mono text-[10px] text-[var(--text-muted)]">
+                      0{index + 1} — {module.label}
                     </span>
                   </div>
-                  <h3 className="font-display font-bold text-sm text-[var(--text-primary)] mt-1">
-                    {stage.title}
+                  <h3 className="mt-6 max-w-sm font-display text-[19px] font-semibold leading-snug tracking-[-0.025em]">
+                    {module.title}
                   </h3>
-                  <p className="text-[11px] text-[var(--text-muted)] mt-1 line-clamp-2">
-                    {stage.desc}
+                  <p className="mt-2 max-w-md text-[12.5px] leading-relaxed text-[var(--text-muted)]">
+                    {module.body}
                   </p>
-                </div>
+                  <span className="mt-5 inline-flex items-center gap-1 font-display text-[11.5px] font-semibold text-[var(--accent)]">
+                    Included in every workspace
+                    <MoveUpRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </span>
+                </article>
               ))}
             </div>
+          </div>
+        </section>
 
-            {/* Stage Showcase Active Display */}
-            <div className="md:col-span-7 glass-card p-6 border-2 border-[var(--border-subtle)] min-h-[380px] flex flex-col justify-between relative overflow-hidden">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-3">
-                  <div>
-                    <span className="mono-label text-[var(--signal-teal)]">
-                      STAGE {walkthroughStages[activeWalkthroughStage].num} // {walkthroughStages[activeWalkthroughStage].status}
-                    </span>
-                    <h3 className="font-display font-extrabold text-lg text-[var(--text-primary)] mt-0.5">
-                      {walkthroughStages[activeWalkthroughStage].title}
-                    </h3>
-                  </div>
-                  <span className="px-2.5 py-1 rounded bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[11px] font-mono text-[var(--text-primary)]">
-                    {walkthroughStages[activeWalkthroughStage].badge}
+        {/* ============ INTERACTIVE DEMO ============ */}
+        <section id="demo" className="mx-auto max-w-[1120px] px-5 py-20 sm:px-6 sm:py-24">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center">
+            <div className="lg:col-span-4">
+              <p className="sx-eyebrow">Try the surfaces</p>
+              <h2 className="sx-display-m mt-3">Two of the four, live.</h2>
+              <p className="mt-3 text-[13px] leading-relaxed text-[var(--text-muted)]">
+                Write a line in the document and check off a task. This is the same editing and
+                task-state behaviour the real workspace uses.
+              </p>
+              <button
+                onClick={() => navigate(startPath)}
+                className="mt-6 inline-flex items-center gap-1.5 font-display text-[12.5px] font-semibold text-[var(--accent)] hover:text-[var(--accent-strong)] cursor-pointer"
+              >
+                Open the full workspace <ArrowRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-8">
+              <div className="overflow-hidden rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface)]">
+                <div className="flex items-center gap-2 border-b border-[var(--border-subtle)] bg-[var(--surface-raised)] px-4 py-2.5">
+                  <FileText className="h-3.5 w-3.5 text-[var(--accent)]" />
+                  <span className="font-display text-[11.5px] font-semibold">Release notes</span>
+                  <span className="ml-auto rounded-full bg-[var(--success-soft)] px-2 py-0.5 text-[9.5px] font-semibold text-[var(--success)]">
+                    Live
                   </span>
                 </div>
-
-                <p className="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed">
-                  {walkthroughStages[activeWalkthroughStage].desc}
-                </p>
-
-                {/* Technical Simulation Visual */}
-                <div className="p-4 rounded-xl bg-[var(--surface-canvas)] border border-[var(--border-subtle)] font-mono text-xs space-y-2">
-                  <div className="text-[10px] text-[var(--text-muted)] border-b border-[var(--border-subtle)] pb-1 flex justify-between">
-                    <span>STATE: STABLE</span>
-                    <span className="text-[var(--signal-teal)]">{walkthroughStages[activeWalkthroughStage].meta}</span>
-                  </div>
-                  <div className="p-3 bg-[var(--surface-card)] rounded border border-[var(--border-subtle)] text-[var(--text-primary)]">
-                    {activeWalkthroughStage === 0 && (
-                      <div className="space-y-1 text-[var(--signal-teal)]">
-                        <p>▶ Canvas Room: convergedesk-arch-review</p>
-                        <p>▶ Active Shapes: 48 | Connected Designers: 3</p>
-                      </div>
-                    )}
-                    {activeWalkthroughStage === 1 && (
-                      <div className="space-y-1 text-[var(--signal-amber)]">
-                        <p>▶ Yjs Document Pad: doc-core-specs-09</p>
-                        <p>▶ Hocuspocus Synchronization: Sub-10ms CRDT delta</p>
-                      </div>
-                    )}
-                    {activeWalkthroughStage === 2 && (
-                      <div className="space-y-1 text-[var(--signal-azure)]">
-                        <p>▶ Monaco Editor: vs-dark active</p>
-                        <p>▶ Diagnostics: 0 Errors, 0 Warnings</p>
-                      </div>
-                    )}
-                    {activeWalkthroughStage === 3 && (
-                      <div className="space-y-1 text-[var(--signal-violet)]">
-                        <p>▶ Sprint Pipeline: 3 Done, 2 In-Progress, 1 Backlog</p>
-                        <p>▶ Team Velocity: 42 Story Points</p>
-                      </div>
-                    )}
-                    {activeWalkthroughStage === 4 && (
-                      <div className="space-y-1 text-[var(--signal-coral)]">
-                        <p>▶ WebRTC Room: project-standup-active</p>
-                        <p>▶ Floating PiP Video: Active across all tabs</p>
-                      </div>
-                    )}
-                  </div>
+                <textarea
+                  value={docText}
+                  onChange={(e) => setDocText(e.target.value)}
+                  rows={7}
+                  className="w-full resize-none bg-transparent p-4 font-mono text-[11.5px] leading-relaxed text-[var(--text-primary)] focus:outline-none"
+                  aria-label="Try the document editor"
+                />
+                <div className="flex items-center justify-between border-t border-[var(--border-subtle)] px-4 py-2 text-[10px] text-[var(--text-muted)]">
+                  <span>{docText.length} characters</span>
+                  <span className="flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" /> Saved
+                  </span>
                 </div>
               </div>
 
-              {/* Step Navigation Dots */}
-              <div className="flex items-center justify-between pt-4 border-t border-[var(--border-subtle)] text-xs font-mono text-[var(--text-muted)]">
-                <span>STAGE {activeWalkthroughStage + 1} OF {walkthroughStages.length}</span>
-                <div className="flex gap-1.5">
-                  {walkthroughStages.map((_, i) => (
+              <div className="overflow-hidden rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface)]">
+                <div className="flex items-center gap-2 border-b border-[var(--border-subtle)] bg-[var(--surface-raised)] px-4 py-2.5">
+                  <ListChecks className="h-3.5 w-3.5 text-[var(--accent)]" />
+                  <span className="font-display text-[11.5px] font-semibold">Sprint tasks</span>
+                  <span className="ml-auto text-[10px] text-[var(--text-muted)]">
+                    {tasks.filter((t) => t.done).length}/{tasks.length} done
+                  </span>
+                </div>
+                <div className="space-y-1 p-2.5">
+                  {tasks.map((task) => (
                     <button
-                      key={i}
-                      onClick={() => setActiveWalkthroughStage(i)}
-                      className={`w-2.5 h-2.5 rounded-full transition-all ${
-                        activeWalkthroughStage === i
-                          ? 'bg-[var(--signal-teal)] scale-125'
-                          : 'bg-[var(--border-subtle)] hover:bg-[var(--text-muted)]'
-                      }`}
-                      aria-label={`Go to stage ${i + 1}`}
-                    />
+                      key={task.id}
+                      onClick={() => toggleTask(task.id)}
+                      className="flex w-full items-center gap-2.5 rounded-[7px] px-2 py-2 text-left transition-colors hover:bg-[var(--surface-hover)] cursor-pointer"
+                    >
+                      <span
+                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border ${
+                          task.done
+                            ? 'border-[var(--accent)] bg-[var(--accent)] text-white'
+                            : 'border-[var(--border-strong)]'
+                        }`}
+                      >
+                        {task.done && <Check className="h-2.5 w-2.5" />}
+                      </span>
+                      <span
+                        className={`text-[11.5px] ${
+                          task.done ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'
+                        }`}
+                      >
+                        {task.text}
+                      </span>
+                    </button>
                   ))}
                 </div>
+                <form onSubmit={addTask} className="flex gap-1.5 border-t border-[var(--border-subtle)] p-2.5">
+                  <input
+                    value={newTask}
+                    onChange={(e) => setNewTask(e.target.value)}
+                    placeholder="Add a task…"
+                    className="h-8 flex-1 rounded-[7px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] px-2.5 text-[11.5px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-[var(--ink)] text-[var(--on-ink)] transition-colors hover:bg-[var(--ink-hover)] cursor-pointer"
+                    aria-label="Add task"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
+                </form>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ==================================================
-            5. EVERYTHING YOUR TEAM NEEDS TO BUILD TOGETHER
-           ================================================== */}
-        <section id="features" className="px-4 md:px-8 max-w-6xl mx-auto space-y-8">
-          <div className="space-y-2">
-            <div className="mono-label text-[var(--signal-teal)]">
-              // WORKSPACE CAPABILITIES
-            </div>
-            <h2 className="font-display font-extrabold text-2xl sm:text-3xl md:text-4xl tracking-tight text-[var(--text-primary)]">
-              Everything Your Team Needs to Build Together
-            </h2>
-            <p className="text-xs sm:text-sm text-[var(--text-muted)] max-w-2xl">
-              Stop losing context between discussions, planning, and development. ConvergeDesk brings your team's workflow together so everyone can stay aligned and move forward.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {/* ============ AUDIENCE ============ */}
+        <section className="border-y border-[var(--border-subtle)] bg-[var(--surface)]">
+          <div className="mx-auto grid max-w-[1120px] grid-cols-1 gap-10 px-5 py-16 sm:px-6 md:grid-cols-3 sm:py-20">
             {[
-              {
-                idx: '01',
-                icon: Users,
-                color: 'var(--signal-teal)',
-                title: 'Real-Time Collaboration',
-                desc: 'Work together on shared documents, exchange ideas, and see changes as they happen. Keep your team connected, wherever they work.',
-              },
-              {
-                idx: '02',
-                icon: FileText,
-                color: 'var(--signal-amber)',
-                title: 'Collaborative Documents',
-                desc: 'Create project notes, document requirements, and capture important decisions in a shared space your entire team can access.',
-              },
-              {
-                idx: '03',
-                icon: CheckSquare,
-                color: 'var(--signal-azure)',
-                title: 'Plan and Organize Projects',
-                desc: 'Manage projects, assign tasks, track progress, and keep responsibilities clear from start to finish.',
-              },
-              {
-                idx: '04',
-                icon: GitBranch,
-                color: 'var(--signal-violet)',
-                title: 'A Connected Development Workflow',
-                desc: 'Move from brainstorming and planning toward implementation without losing the context behind your team\'s decisions.',
-              },
-              {
-                idx: '05',
-                icon: Sparkles,
-                color: 'var(--signal-coral)',
-                title: 'AI-Powered Productivity',
-                desc: 'Our vision is to help teams turn discussions and project context into useful summaries, suggested tasks, and actionable next steps.',
-                featured: true,
-              },
-            ].map((f) => (
-              <div
-                key={f.idx}
-                className={`glass-card p-5 space-y-4 hover:translate-y-[-2px] transition-transform group ${
-                  f.featured ? 'md:col-span-2 lg:col-span-2 border-[var(--signal-coral)]/40 bg-[var(--surface-raised)]/70' : ''
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div
-                    className="w-9 h-9 rounded-lg flex items-center justify-center border border-[var(--border-subtle)] bg-[var(--surface-raised)]"
-                    style={{ color: f.color }}
-                  >
-                    <f.icon className="w-4 h-4" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {f.featured && (
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--signal-coral)]/10 text-[var(--signal-coral)] border border-[var(--signal-coral)]/30">
-                        VISION
-                      </span>
-                    )}
-                    <span className="font-mono text-xs text-[var(--text-muted)] group-hover:text-[var(--signal-teal)] transition-colors">
-                      [{f.idx}]
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-sm sm:text-base text-[var(--text-primary)]">
-                    {f.title}
-                  </h3>
-                  <p className="text-xs text-[var(--text-muted)] mt-1.5 leading-relaxed">
-                    {f.desc}
-                  </p>
-                </div>
+              [Users, 'Student teams', 'Keep a semester project legible to everyone, even when the team meets twice a week.'],
+              [Circle, 'Hackathon crews', 'Plan, sketch and build in the same window. No onboarding, no environment to install.'],
+              [FolderKanban, 'Product squads', 'Carry the decision from the doc to the board to the code without repeating yourself.'],
+            ].map(([Icon, title, body]) => (
+              <div key={title}>
+                <Icon className="h-5 w-5 text-[var(--accent)]" />
+                <h3 className="mt-4 font-display text-[15px] font-semibold">{title}</h3>
+                <p className="mt-2 max-w-xs text-[12.5px] leading-relaxed text-[var(--text-muted)]">{body}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ==================================================
-            6. BUILT FOR TEAMS THAT CREATE TOGETHER
-           ================================================== */}
-        <section id="teams" className="px-4 md:px-8 max-w-6xl mx-auto space-y-8">
-          <div className="space-y-2">
-            <div className="mono-label text-[var(--signal-teal)]">
-              // AUDIENCE & USE CASES
-            </div>
-            <h2 className="font-display font-extrabold text-2xl sm:text-3xl md:text-4xl tracking-tight text-[var(--text-primary)]">
-              Built for Teams That Create Together
-            </h2>
-            <p className="text-xs sm:text-sm text-[var(--text-muted)] max-w-2xl">
-              Whether you're building your first college project, participating in a hackathon, or developing software with a small team, ConvergeDesk is designed to keep your work connected.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[
-              {
-                tag: 'ACADEMIC & LEARNING',
-                icon: GraduationCap,
-                color: 'var(--signal-teal)',
-                title: 'For Student Developers',
-                desc: 'Organize college projects, collaborate with teammates, and turn ideas into working solutions.',
-                badge: 'STUDENT // CAMPUS',
-              },
-              {
-                tag: 'RAPID SPRINTING',
-                icon: Zap,
-                color: 'var(--signal-amber)',
-                title: 'For Hackathon Teams',
-                desc: 'Plan quickly, share knowledge, coordinate responsibilities, and keep everyone focused on building.',
-                badge: '48H // FAST HACKS',
-              },
-              {
-                tag: 'PRODUCTION WORKFLOWS',
-                icon: Cpu,
-                color: 'var(--signal-azure)',
-                title: 'For Software Teams',
-                desc: 'Connect project documentation, collaboration, and task execution in a shared development workspace.',
-                badge: 'TEAMS // SHIP FASTER',
-              },
-            ].map((team, idx) => (
-              <div
-                key={idx}
-                className="glass-card p-6 space-y-4 hover:translate-y-[-2px] transition-transform border-2 border-[var(--border-subtle)] hover:border-[var(--signal-teal)] group flex flex-col justify-between"
-              >
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center border border-[var(--border-subtle)] bg-[var(--surface-raised)]"
-                      style={{ color: team.color }}
-                    >
-                      <team.icon className="w-5 h-5" />
-                    </div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--surface-canvas)] border border-[var(--border-subtle)] text-[var(--text-muted)]">
-                      {team.badge}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="mono-label text-[10px] text-[var(--text-muted)]">
-                      {team.tag}
-                    </span>
-                    <h3 className="font-display font-extrabold text-base text-[var(--text-primary)] mt-1">
-                      {team.title}
-                    </h3>
-                    <p className="text-xs text-[var(--text-muted)] mt-2 leading-relaxed">
-                      {team.desc}
-                    </p>
-                  </div>
-                </div>
-                <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] font-mono text-[var(--signal-teal)]">
-                  <span>OPTIMIZED WORKFLOW</span>
-                  <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ==================================================
-            6. PRODUCT SHOWCASE SECTION (Interactive Playground)
-           ================================================== */}
-        <section id="interactive" className="px-4 md:px-8 max-w-6xl mx-auto space-y-8">
-          <div className="space-y-2">
-            <div className="mono-label text-[var(--signal-teal)]">
-              // INTERACTIVE SHOWCASE
-            </div>
-            <h2 className="font-display font-extrabold text-2xl sm:text-3xl md:text-4xl tracking-tight text-[var(--text-primary)]">
-              Test drive the live reactive components
-            </h2>
-            <p className="text-xs sm:text-sm text-[var(--text-muted)]">
-              Interact directly with the live editor and sprint task state below.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Interactive Component 1: Live Markdown Spec Editor */}
-            <div className="glass-card p-5 space-y-3">
-              <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2.5">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-[var(--signal-teal)]" />
-                  <span className="font-mono text-xs font-bold text-[var(--text-primary)]">
-                    LIVE SPEC WRITER
-                  </span>
-                </div>
-                <span className="text-[10px] font-mono text-[var(--signal-teal)] bg-[var(--surface-raised)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
-                  INTERACTIVE
-                </span>
-              </div>
-              <textarea
-                value={interactiveDocText}
-                onChange={(e) => setInteractiveDocText(e.target.value)}
-                rows={7}
-                className="w-full bg-[var(--surface-canvas)] border border-[var(--border-subtle)] rounded-lg p-3 font-mono text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--signal-teal)] resize-none"
-                placeholder="Type specs here..."
-              />
-              <div className="flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
-                <span>CHARS: {interactiveDocText.length}</span>
-                <span className="text-[var(--signal-teal)]">✓ REAL-TIME BUFFER READY</span>
-              </div>
-            </div>
-
-            {/* Interactive Component 2: Reactive Sprint Task List */}
-            <div className="glass-card p-5 space-y-3">
-              <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-2.5">
-                <div className="flex items-center gap-2">
-                  <CheckSquare className="w-4 h-4 text-[var(--signal-amber)]" />
-                  <span className="font-mono text-xs font-bold text-[var(--text-primary)]">
-                    SPRINT PIPELINE MINI
-                  </span>
-                </div>
-                <span className="text-[10px] font-mono text-[var(--text-muted)]">
-                  {interactiveTasks.filter((t) => t.done).length}/{interactiveTasks.length} COMPLETED
-                </span>
-              </div>
-
-              <div className="space-y-1.5 max-h-[160px] overflow-y-auto">
-                {interactiveTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    onClick={() => handleToggleTask(task.id)}
-                    className="flex items-center gap-2 p-2 rounded-lg bg-[var(--surface-canvas)] border border-[var(--border-subtle)] hover:border-[var(--signal-teal)] cursor-pointer text-xs font-mono transition-colors"
-                  >
-                    <div
-                      className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
-                        task.done
-                          ? 'bg-[var(--signal-teal)] border-[var(--signal-teal)] text-black'
-                          : 'border-[var(--border-subtle)]'
-                      }`}
-                    >
-                      {task.done && <Check className="w-2.5 h-2.5" />}
-                    </div>
-                    <span className={task.done ? 'line-through text-[var(--text-muted)]' : 'text-[var(--text-primary)]'}>
-                      {task.text}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <form onSubmit={handleAddTask} className="flex gap-2 pt-1">
-                <input
-                  type="text"
-                  value={newTaskInput}
-                  onChange={(e) => setNewTaskInput(e.target.value)}
-                  placeholder="Add sprint item..."
-                  className="flex-1 bg-[var(--surface-canvas)] border border-[var(--border-subtle)] rounded-lg px-3 py-1.5 font-mono text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--signal-teal)]"
-                />
-                <button
-                  type="submit"
-                  className="px-3 py-1.5 rounded-lg bg-[var(--signal-teal)] text-black font-mono font-bold text-xs hover:opacity-90 transition-opacity"
-                >
-                  ADD
-                </button>
-              </form>
-            </div>
-          </div>
-        </section>
-
-        {/* ==================================================
-            7. KEY WORKSPACE HIGHLIGHTS
-           ================================================== */}
-        <section id="metrics" className="px-4 md:px-8 max-w-6xl mx-auto">
-          <div className="glass-card p-6 md:p-8 border-2 border-[var(--border-subtle)]">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-[var(--border-subtle)]">
-              <div className="space-y-1.5 pt-4 md:pt-0">
-                <div className="font-display font-extrabold text-3xl md:text-4xl text-[var(--signal-teal)]">
-                  4-in-1
-                </div>
-                <div className="mono-label text-[var(--text-primary)] font-bold text-xs">
-                  UNIFIED WORKSPACE
-                </div>
-                <div className="text-[11px] text-[var(--text-muted)]">
-                  Docs, Tasks, Boards & Code
-                </div>
-              </div>
-
-              <div className="space-y-1.5 pt-4 md:pt-0">
-                <div className="font-display font-extrabold text-3xl md:text-4xl text-[var(--signal-amber)]">
-                  100%
-                </div>
-                <div className="mono-label text-[var(--text-primary)] font-bold text-xs">
-                  REAL-TIME SYNC
-                </div>
-                <div className="text-[11px] text-[var(--text-muted)]">
-                  Live Multi-User Collaboration
-                </div>
-              </div>
-
-              <div className="space-y-1.5 pt-4 md:pt-0">
-                <div className="font-display font-extrabold text-3xl md:text-4xl text-[var(--signal-azure)]">
-                  0 min
-                </div>
-                <div className="mono-label text-[var(--text-primary)] font-bold text-xs">
-                  SETUP TIME
-                </div>
-                <div className="text-[11px] text-[var(--text-muted)]">
-                  Instant In-Browser Access
-                </div>
-              </div>
-
-              <div className="space-y-1.5 pt-4 md:pt-0">
-                <div className="font-display font-extrabold text-3xl md:text-4xl text-[var(--signal-violet)]">
-                  ZERO
-                </div>
-                <div className="mono-label text-[var(--text-primary)] font-bold text-xs">
-                  LOST CONTEXT
-                </div>
-                <div className="text-[11px] text-[var(--text-muted)]">
-                  From Idea to Implementation
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ==================================================
-            8. FINAL CTA SECTION: LESS SWITCHING. MORE BUILDING.
-           ================================================== */}
-        <section className="px-4 md:px-8 max-w-6xl mx-auto">
-          <div className="glass-card p-8 md:p-14 border-2 border-[var(--signal-teal)] text-center relative overflow-hidden bg-gradient-to-b from-[var(--surface-card)] to-[var(--surface-raised)] shadow-xl">
-            <div className="absolute inset-0 dot-matrix opacity-25 pointer-events-none" />
-            <div className="relative z-10 max-w-2xl mx-auto space-y-6">
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--surface-canvas)] border border-[var(--border-subtle)] text-[var(--signal-teal)] text-xs font-mono">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>With ConvergeDesk, your team can focus on what matters: turning ideas into results.</span>
-              </div>
-
-              <h2 className="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-[var(--text-primary)] tracking-tight">
-                Less Switching. More Building.
-              </h2>
-
-              <p className="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed max-w-xl mx-auto">
-                Your team's best ideas shouldn't get lost between applications. Keep project knowledge accessible, responsibilities clear, and collaboration connected.
+        {/* ============ CLOSING CTA ============ */}
+        <section className="mx-auto max-w-[1120px] px-5 py-20 sm:px-6 sm:py-24">
+          <div className="relative overflow-hidden rounded-[26px] border border-[var(--border-subtle)] bg-[var(--ink)] px-6 py-14 text-center sm:px-12 sm:py-20">
+            <div className="pointer-events-none absolute inset-0 sx-dot-grid opacity-[0.18]" />
+            <div className="relative">
+              <p className="font-display text-[11px] font-bold uppercase tracking-[0.15em] text-[var(--accent)]">
+                Less switching. More building.
               </p>
-
-              <div className="p-4 sm:p-5 rounded-xl bg-[var(--surface-canvas)] border border-[var(--border-subtle)] space-y-1.5 max-w-lg mx-auto">
-                <div className="font-display font-bold text-sm sm:text-base text-[var(--text-primary)]">
-                  Start Building Together Today
-                </div>
-                <p className="text-xs text-[var(--text-muted)]">
-                  Create your workspace, bring your team together, and take your next project from idea to implementation.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <h2 className="mx-auto mt-4 max-w-2xl sx-display-l text-[var(--on-ink)]">
+                {isAuthenticated
+                  ? `Welcome back, ${user?.username || 'builder'}. Your workspace is ready.`
+                  : 'Bring the whole idea into one workspace.'}
+              </h2>
+              <p className="mx-auto mt-4 max-w-md text-[13px] leading-relaxed text-[var(--on-ink)]/60">
+                Documents, tasks, whiteboards and code — already connected, already yours.
+              </p>
+              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <button
                   onClick={() => navigate(isAuthenticated ? '/projects' : '/signup')}
-                  className="px-8 py-3.5 rounded-[var(--btn-radius)] bg-[var(--signal-teal)] text-black font-bold text-xs sm:text-sm font-mono flex items-center gap-2 hover:opacity-95 transition-all shadow-md active:translate-y-0.5"
+                  className="inline-flex h-[48px] w-full items-center justify-center gap-2 rounded-full bg-[var(--on-ink)] px-6 font-display text-[13px] font-semibold text-[var(--ink)] transition-opacity hover:opacity-90 sm:w-auto cursor-pointer"
                 >
-                  <span>GET STARTED</span>
-                  <ArrowRight className="w-4 h-4" />
+                  {isAuthenticated ? 'Open workspace' : 'Create your workspace'}
+                  <ArrowRight className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => navigate(isAuthenticated ? '/projects' : '/login')}
-                  className="px-6 py-3.5 rounded-[var(--btn-radius)] bg-[var(--surface-canvas)] border border-[var(--border-subtle)] text-[var(--text-primary)] font-mono text-xs sm:text-sm hover:border-[var(--signal-teal)] transition-colors"
+                  onClick={() => navigate('/login')}
+                  className="inline-flex h-[48px] w-full items-center justify-center rounded-full border border-white/20 px-6 font-display text-[13px] font-semibold text-[var(--on-ink)] transition-colors hover:bg-white/10 sm:w-auto cursor-pointer"
                 >
-                  EXPLORE WORKSPACE
+                  Sign in
                 </button>
               </div>
             </div>
@@ -1015,25 +603,18 @@ export const LandingPage = () => {
         </section>
       </main>
 
-      {/* ==================================================
-          9. FOOTER
-         ================================================== */}
-      <footer className="mt-24 border-t border-[var(--border-subtle)] bg-[var(--surface-canvas)] py-8 px-4 md:px-8 relative z-10 text-xs font-mono">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-[var(--text-muted)]">
-          <div className="flex items-center gap-2">
-            <Terminal className="w-4 h-4 text-[var(--signal-teal)]" />
-            <span className="font-bold text-[var(--text-primary)]">ConvergeDesk</span>
-            <span>— One Workspace. From Idea to Implementation.</span>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5 text-[var(--signal-teal)]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--signal-teal)]" />
-              STATUS: ALL SYSTEMS NOMINAL
+      <footer className="border-t border-[var(--border-subtle)]">
+        <div className="mx-auto flex max-w-[1120px] flex-col gap-4 px-5 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-6 w-6 items-center justify-center rounded-[7px] bg-[var(--ink)] text-[var(--on-ink)]">
+              <span className="font-display text-[9px] font-bold">S</span>
             </span>
-            <span>•</span>
-            <span>© 2026 CONVERGEDESK INC.</span>
+            <span className="font-display text-[12px] font-semibold">SyncSpace</span>
+            <span className="text-[11px] text-[var(--text-muted)]">Studio workspace</span>
           </div>
+          <p className="text-[11px] text-[var(--text-muted)]">
+            Built for teams that think, plan and build in the same place.
+          </p>
         </div>
       </footer>
     </div>

@@ -5,13 +5,12 @@ import {
   Search,
   Bell,
   Plus,
-  User as UserIcon,
-  LogOut,
   Settings,
-  FolderPlus,
   Sun,
   Moon,
-  Layout,
+  LogOut,
+  ChevronRight,
+  FolderKanban,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -19,9 +18,22 @@ import { Button } from '../common/Button';
 import { GlobalSearch } from '../common/GlobalSearch';
 import { CreateProjectModal } from '../projects/CreateProjectModal';
 
+const PAGE_META = {
+  '/': { title: 'Dashboard', parent: 'Workspace' },
+  '/dashboard': { title: 'Dashboard', parent: 'Workspace' },
+  '/projects': { title: 'Projects', parent: 'Workspace' },
+  '/tasks': { title: 'Tasks', parent: 'Workspace' },
+  '/documents': { title: 'Documents', parent: 'Workspace' },
+  '/whiteboards': { title: 'Whiteboards', parent: 'Studio' },
+  '/code': { title: 'Code workspace', parent: 'Studio' },
+  '/meetings': { title: 'Team & meetings', parent: 'Studio' },
+  '/settings': { title: 'Settings', parent: 'Account' },
+  '/collaborative-editor-test': { title: 'Documents', parent: 'Workspace' },
+};
+
 export const Navbar = ({ onOpenMobileMenu }) => {
   const { user, isAuthenticated, logout } = useAuth();
-  const { theme, cycleTheme, isDark, isLight, isBrutalist } = useTheme();
+  const { isDark, cycleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -30,205 +42,201 @@ export const Navbar = ({ onOpenMobileMenu }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
 
-  // Derive dynamic page title
-  const getPageTitle = () => {
+  const resolveMeta = () => {
     const path = location.pathname;
-    if (path === '/') return 'Dashboard';
-    if (path.startsWith('/projects/') && path.includes('/boards/')) return 'Whiteboard Canvas';
-    if (path.startsWith('/projects/')) return 'Project Workspace';
-    if (path === '/projects') return 'Projects';
-    if (path === '/tasks') return 'Task Management';
-    if (path === '/whiteboards') return 'Multiplayer Whiteboards';
-    if (path === '/code') return 'Code Workspace';
-    if (path === '/meetings') return 'Meetings & Calls';
-    if (path === '/collaborative-editor-test') return 'Collaborative Docs Test Room';
-    if (path === '/settings') return 'Settings & Diagnostics';
-    if (path === '/landing') return 'Product Overview';
-    if (path === '/login') return 'Sign In';
-    if (path === '/signup') return 'Create Account';
-    return 'ConvergeDesk';
+    if (PAGE_META[path]) return PAGE_META[path];
+    if (path.startsWith('/projects/') && path.includes('/boards/')) {
+      return { title: 'Whiteboard', parent: 'Projects' };
+    }
+    if (path.startsWith('/projects/')) return { title: 'Project workspace', parent: 'Projects' };
+    return { title: 'SyncSpace', parent: 'Workspace' };
   };
+
+  const meta = resolveMeta();
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 md:px-6 bg-[var(--surface-canvas)]/95 backdrop-blur-md border-b border-[var(--border-subtle)] transition-colors">
-        {/* Left: Mobile hamburger & breadcrumb / title */}
-        <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-[var(--border-subtle)] bg-[var(--surface-glass)] px-4 backdrop-blur-xl md:px-6 select-none">
+        {/* Left: menu + breadcrumb */}
+        <div className="flex min-w-0 items-center gap-2">
           <button
             onClick={onOpenMobileMenu}
-            className="p-2 -ml-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-raised)] rounded-xl md:hidden transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-[7px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] md:hidden cursor-pointer"
             aria-label="Open sidebar menu"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="h-4 w-4" />
           </button>
-          <div className="flex items-center gap-2.5">
-            <h1 className="font-display text-base sm:text-lg font-bold text-[var(--text-primary)] tracking-tight">
-              {getPageTitle()}
-            </h1>
-            <span className="hidden sm:inline-block text-[10px] font-mono text-[var(--signal-teal)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] px-2 py-0.5 rounded-md">
-              LIVE
+          <div className="flex min-w-0 items-center gap-1.5">
+            <span className="hidden text-[12px] font-medium text-[var(--text-muted)] sm:inline">
+              {meta.parent}
             </span>
+            <ChevronRight className="hidden h-3.5 w-3.5 text-[var(--border-strong)] sm:block" />
+            <h1 className="truncate font-display text-[13.5px] font-semibold tracking-[-0.01em] text-[var(--text-primary)]">
+              {meta.title}
+            </h1>
           </div>
         </div>
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Global Search Button */}
+        {/* Center: command search */}
+        <div className="hidden flex-1 justify-center lg:flex">
           <button
             onClick={() => setIsSearchOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs text-[var(--text-muted)] bg-[var(--surface-raised)] hover:bg-[var(--surface-card)] border border-[var(--border-subtle)] rounded-xl transition-colors sm:w-56 justify-between group"
+            className="group flex h-9 w-full max-w-sm items-center gap-2.5 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-raised)] px-3.5 text-[var(--text-muted)] transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface)] cursor-pointer"
           >
-            <div className="flex items-center gap-2">
-              <Search className="w-3.5 h-3.5 text-[var(--text-muted)] group-hover:text-[var(--signal-teal)] transition-colors" />
-              <span className="hidden sm:inline">Search anything...</span>
-              <span className="sm:hidden">Search</span>
-            </div>
-            <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono font-semibold text-[var(--text-muted)] bg-[var(--surface-canvas)] rounded border border-[var(--border-subtle)]">
-              Ctrl K
+            <Search className="h-3.5 w-3.5 shrink-0 group-hover:text-[var(--accent)] transition-colors" />
+            <span className="flex-1 text-left text-[12.5px]">Search workspace…</span>
+            <kbd className="rounded-[5px] border border-[var(--border-subtle)] bg-[var(--surface)] px-1.5 py-0.5 font-mono text-[10px]">
+              ⌘K
             </kbd>
           </button>
+        </div>
 
-          {/* Theme Switcher in Navbar: 2 Themes (Light Brutalist & Dark Brutalist) */}
+        {/* Right: utilities */}
+        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
           <button
-            onClick={cycleTheme}
-            className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-raised)] border border-[var(--border-subtle)] rounded-xl transition-colors flex items-center gap-1.5 text-xs font-mono"
-            title={`Switch to ${isDark ? 'Light Brutalist' : 'Dark Brutalist'}`}
+            onClick={() => setIsSearchOpen(true)}
+            className="flex h-8 w-8 items-center justify-center rounded-[7px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] lg:hidden cursor-pointer"
+            aria-label="Search"
           >
-            {isDark ? (
-              <Moon className="w-4 h-4 text-[var(--signal-teal)]" />
-            ) : (
-              <Sun className="w-4 h-4 text-[var(--signal-amber)]" />
-            )}
-            <span className="hidden xl:inline text-[10px] uppercase font-semibold">
-              {isDark ? 'DARK BRUTALIST' : 'LIGHT BRUTALIST'}
-            </span>
+            <Search className="h-4 w-4" />
           </button>
 
-          {/* Quick Create Project */}
+          <button
+            onClick={cycleTheme}
+            className="flex h-8 w-8 items-center justify-center rounded-[7px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] cursor-pointer"
+            title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+            aria-label="Toggle color theme"
+          >
+            {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+          </button>
+
           {isAuthenticated && (
             <Button
               size="sm"
-              leftIcon={<Plus className="w-4 h-4" />}
+              variant="primary"
+              leftIcon={<Plus className="h-3.5 w-3.5" />}
               onClick={() => setIsCreateProjectOpen(true)}
-              className="hidden sm:inline-flex bg-[var(--signal-teal)] text-black font-semibold hover:opacity-90 shadow-xs"
+              className="hidden sm:inline-flex"
             >
-              New Project
+              New project
             </Button>
           )}
 
-          {/* Notifications */}
           <div className="relative">
             <button
-              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-              className="relative p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-raised)] border border-[var(--border-subtle)] rounded-xl transition-colors"
+              onClick={() => {
+                setIsNotificationsOpen(!isNotificationsOpen);
+                setIsUserMenuOpen(false);
+              }}
+              className="relative flex h-8 w-8 items-center justify-center rounded-[7px] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] cursor-pointer"
               aria-label="Notifications"
             >
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[var(--signal-teal)] ring-2 ring-[var(--surface-canvas)]" />
+              <Bell className="h-4 w-4" />
+              <span className="absolute right-[7px] top-[7px] h-1.5 w-1.5 rounded-full bg-[var(--accent)] ring-2 ring-[var(--surface)]" />
             </button>
 
             {isNotificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-[var(--surface-card)] rounded-2xl shadow-2xl border border-[var(--border-subtle)] p-4 z-40 animate-in fade-in zoom-in-95 duration-150">
-                <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)]">
-                  <h4 className="mono-label text-[var(--text-muted)]">
-                    NOTIFICATIONS
-                  </h4>
-                  <span className="text-[10px] font-mono bg-[var(--surface-raised)] text-[var(--signal-teal)] font-semibold px-2 py-0.5 rounded-full border border-[var(--border-subtle)]">
-                    LIVE
-                  </span>
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setIsNotificationsOpen(false)} />
+                <div className="absolute right-0 z-40 mt-2 w-72 overflow-hidden rounded-[12px] border border-[var(--border-subtle)] bg-[var(--surface)] shadow-[var(--shadow-menu)] animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-4 py-2.5">
+                    <span className="sx-eyebrow">Notifications</span>
+                    <span className="rounded-full bg-[var(--surface-inset)] px-2 py-0.5 text-[10px] font-semibold text-[var(--text-muted)]">
+                      Inbox
+                    </span>
+                  </div>
+                  <div className="px-4 py-8 text-center">
+                    <Bell className="mx-auto mb-2 h-5 w-5 text-[var(--text-muted)]" />
+                    <p className="font-display text-[12.5px] font-semibold text-[var(--text-primary)]">
+                      You're all caught up
+                    </p>
+                    <p className="mt-0.5 text-[11.5px] text-[var(--text-muted)]">
+                      Project updates will appear here.
+                    </p>
+                  </div>
                 </div>
-                <div className="py-6 text-center text-xs text-[var(--text-muted)]">
-                  <Bell className="w-8 h-8 text-[var(--text-muted)] opacity-40 mx-auto mb-2" />
-                  <p className="font-medium text-[var(--text-primary)]">No unread notifications</p>
-                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5 font-mono">
-                    Real-time project events will stream here.
-                  </p>
-                </div>
-              </div>
+              </>
             )}
           </div>
 
-          {/* User Menu / Avatar */}
           {isAuthenticated && user ? (
             <div className="relative">
               <button
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2 p-1 pl-2 text-sm rounded-xl hover:bg-[var(--surface-raised)] transition-colors border border-[var(--border-subtle)] bg-[var(--surface-raised)]"
+                onClick={() => {
+                  setIsUserMenuOpen(!isUserMenuOpen);
+                  setIsNotificationsOpen(false);
+                }}
+                className="flex h-8 items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-raised)] pl-1 pr-1 sm:pr-2.5 transition-colors hover:border-[var(--border-strong)] cursor-pointer"
+                aria-label="Account menu"
               >
-                <span className="font-mono font-semibold text-xs text-[var(--text-primary)] hidden md:inline">
-                  {user?.username || 'User'}
-                </span>
-                <div className="w-7 h-7 rounded-lg bg-[var(--surface-canvas)] text-[var(--signal-teal)] border border-[var(--border-subtle)] flex items-center justify-center font-bold font-mono text-xs">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent-soft)] font-display text-[10.5px] font-bold text-[var(--accent)]">
                   {(user?.username?.[0] || user?.email?.[0] || 'U').toUpperCase()}
-                </div>
+                </span>
+                <span className="hidden max-w-[90px] truncate font-display text-[11.5px] font-semibold text-[var(--text-primary)] sm:inline">
+                  {user?.username || 'Member'}
+                </span>
               </button>
 
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-[var(--surface-card)] rounded-2xl shadow-2xl border border-[var(--border-subtle)] p-2 z-40 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-3 py-2 border-b border-[var(--border-subtle)]">
-                    <p className="text-xs font-bold text-[var(--text-primary)]">{user?.username || 'User'}</p>
-                    <p className="text-[11px] font-mono text-[var(--text-muted)] truncate">{user?.email || 'Session active'}</p>
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setIsUserMenuOpen(false)} />
+                  <div className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-[12px] border border-[var(--border-subtle)] bg-[var(--surface)] p-1.5 shadow-[var(--shadow-menu)] animate-in fade-in zoom-in-95 duration-150">
+                    <div className="border-b border-[var(--border-subtle)] px-2.5 py-2">
+                      <p className="font-display text-[12.5px] font-semibold text-[var(--text-primary)]">
+                        {user?.username || 'Member'}
+                      </p>
+                      <p className="truncate text-[11px] text-[var(--text-muted)]">{user?.email}</p>
+                    </div>
+                    <div className="py-1">
+                      <button
+                        onClick={() => {
+                          navigate('/projects');
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="flex w-full items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-[12px] text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] cursor-pointer"
+                      >
+                        <FolderKanban className="h-3.5 w-3.5" /> My projects
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate('/settings');
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="flex w-full items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-[12px] text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] cursor-pointer"
+                      >
+                        <Settings className="h-3.5 w-3.5" /> Settings
+                      </button>
+                    </div>
+                    <div className="border-t border-[var(--border-subtle)] pt-1">
+                      <button
+                        onClick={async () => {
+                          setIsUserMenuOpen(false);
+                          await logout();
+                          navigate('/landing');
+                        }}
+                        className="flex w-full items-center gap-2 rounded-[7px] px-2.5 py-1.5 text-[12px] font-medium text-[var(--error)] transition-colors hover:bg-[var(--error-soft)] cursor-pointer"
+                      >
+                        <LogOut className="h-3.5 w-3.5" /> Sign out
+                      </button>
+                    </div>
                   </div>
-                  <div className="py-1">
-                    <button
-                      onClick={() => {
-                        navigate('/settings');
-                        setIsUserMenuOpen(false);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-[var(--text-muted)] hover:bg-[var(--surface-raised)] hover:text-[var(--text-primary)] rounded-lg text-left transition-colors"
-                    >
-                      <Settings className="w-4 h-4 text-[var(--text-muted)]" />
-                      Settings & Overview
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigate('/projects');
-                        setIsUserMenuOpen(false);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-[var(--text-muted)] hover:bg-[var(--surface-raised)] hover:text-[var(--text-primary)] rounded-lg text-left transition-colors"
-                    >
-                      <FolderPlus className="w-4 h-4 text-[var(--text-muted)]" />
-                      My Projects
-                    </button>
-                  </div>
-                  <div className="pt-1 border-t border-[var(--border-subtle)]">
-                    <button
-                      onClick={async () => {
-                        setIsUserMenuOpen(false);
-                        await logout();
-                        navigate('/landing');
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--signal-coral)] hover:bg-rose-500/10 rounded-lg text-left transition-colors"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
-                    </button>
-                  </div>
-                </div>
+                </>
               )}
             </div>
           ) : (
-            <Button
-              size="sm"
-              onClick={() => navigate('/login')}
-              className="bg-[var(--signal-teal)] text-black font-semibold text-xs"
-            >
-              Sign In
+            <Button size="sm" variant="primary" onClick={() => navigate('/login')}>
+              Sign in
             </Button>
           )}
         </div>
       </header>
 
-      {/* Global Search Modal */}
       <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
-      {/* Quick Create Project Modal */}
       <CreateProjectModal
         isOpen={isCreateProjectOpen}
         onClose={() => setIsCreateProjectOpen(false)}
-        onCreated={() => {
-          navigate('/projects');
-        }}
+        onCreated={() => navigate('/projects')}
       />
     </>
   );

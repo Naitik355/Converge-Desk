@@ -1,23 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import { request } from "../api/client";
-import {
-  acceptProjectInvitation,
-  getProjectInvitationDetails,
-} from "../api/projects";
+import React, { useState, useEffect } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { request } from '../api/client';
+import { acceptProjectInvitation, getProjectInvitationDetails } from '../api/projects';
+import { AuthLayout } from '../components/layout/AuthLayout';
+import { Button } from '../components/common/Button';
+import { Input } from '../components/common/Input';
+import { SegmentedControl } from '../components/common/SegmentedControl';
+import { CheckCircle2, AlertCircle, Mail, Lock, User } from 'lucide-react';
 
 export function AcceptProjectInvitationPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const token = searchParams.get("token");
+  const token = searchParams.get('token');
   const [invitation, setInvitation] = useState(null);
   const [invitationLoading, setInvitationLoading] = useState(true);
-  const [mode, setMode] = useState("login");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [mode, setMode] = useState('login');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -25,20 +27,17 @@ export function AcceptProjectInvitationPage() {
 
     async function loadInvitation() {
       if (!token) {
-        setError("This invitation link is missing its token.");
+        setError('This invitation link is missing its token.');
         setInvitationLoading(false);
         return;
       }
-
       try {
         const details = await getProjectInvitationDetails(token);
         if (!cancelled) setInvitation(details);
       } catch (err) {
         if (!cancelled) {
           setError(
-            err instanceof Error
-              ? err.message
-              : "Could not load invitation details.",
+            err instanceof Error ? err.message : 'Could not load invitation details.'
           );
         }
       } finally {
@@ -47,7 +46,6 @@ export function AcceptProjectInvitationPage() {
     }
 
     loadInvitation();
-
     return () => {
       cancelled = true;
     };
@@ -55,173 +53,138 @@ export function AcceptProjectInvitationPage() {
 
   const submit = async (event) => {
     event.preventDefault();
-    setError("");
-    setMessage("");
+    setError('');
+    setMessage('');
 
     if (!token) {
-      setError("This invitation link is missing its token.");
+      setError('This invitation link is missing its token.');
       return;
     }
 
     setLoading(true);
-
     try {
-      if (mode === "signup") {
+      if (mode === 'signup') {
         if (!invitation?.email) {
           throw new Error(
-            "Invitation details are not available. Please reopen your invitation link.",
+            'Invitation details are not available. Please reopen your invitation link.'
           );
         }
-
-        await request("/accounts/signup/", {
-          method: "POST",
-          body: JSON.stringify({
-            username,
-            email: invitation.email,
-            password,
-          }),
+        await request('/accounts/signup/', {
+          method: 'POST',
+          body: JSON.stringify({ username, email: invitation.email, password }),
         });
       }
 
-      if (mode === "signup" || mode === "login") {
-        await request("/accounts/login/", {
-          method: "POST",
+      if (mode === 'signup' || mode === 'login') {
+        await request('/accounts/login/', {
+          method: 'POST',
           body: JSON.stringify({ username, password }),
         });
       }
 
       await acceptProjectInvitation(token);
-      setMessage("Invitation accepted! Redirecting to your projects…");
-      setTimeout(() => navigate("/projects"), 1000);
+      setMessage('Invitation accepted! Redirecting to your projects…');
+      setTimeout(() => navigate('/projects'), 1000);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not accept the invitation.",
-      );
+      setError(err instanceof Error ? err.message : 'Could not accept the invitation.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#070b10] p-6">
-      <section className="w-full max-w-md rounded-3xl border border-slate-800 bg-[#0d131c] p-8 shadow-2xl">
-        <h1 className="text-xl font-bold text-white">
-          Accept Project Invitation
-        </h1>
-        {invitationLoading ? (
-          <p className="mt-3 text-sm text-slate-400">
-            Loading invitation details…
-          </p>
-        ) : invitation ? (
-          <div className="mt-3 rounded-xl bg-[#080d14] border border-slate-800 p-4 text-sm text-slate-200">
-            <p>
-              You've been invited to join{" "}
-              <strong className="text-emerald-400">{invitation.project_name}</strong>.
-            </p>
-            <p className="mt-1 text-slate-300">
-              Invited email: <strong className="text-slate-100">{invitation.email}</strong>
-            </p>
-            <p className="mt-1 text-slate-300">
-              Role: <strong className="capitalize text-emerald-400">{invitation.role}</strong>
-            </p>
-          </div>
-        ) : null}
-        <p className="mt-3 text-xs text-slate-400">
-          {mode === "signup"
-            ? "Create an account using the email address that was invited."
-            : "Sign in using the account associated with this invitation."}
-        </p>
-
-        <div className="mt-5 flex gap-2 p-1 bg-[#080d14] rounded-xl border border-slate-800">
-          <button
-            type="button"
-            onClick={() => setMode("login")}
-            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
-              mode === "login" ? "bg-emerald-600 text-white shadow-xs" : "text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            Sign in
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("signup")}
-            className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
-              mode === "signup" ? "bg-emerald-600 text-white shadow-xs" : "text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            Create account
-          </button>
-        </div>
-
-        <form onSubmit={submit} className="mt-5 space-y-4">
-          {mode === "signup" && (
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
-              Email address
-              <input
-                type="email"
-                required
-                value={invitation?.email || email}
-                onChange={(event) => setEmail(event.target.value)}
-                readOnly={Boolean(invitation?.email)}
-                className="mt-1 w-full bg-[#080d14] text-slate-100 border border-slate-800 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              />
-            </label>
-          )}
-
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
-            Username
-            <input
-              required
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              className="mt-1 w-full bg-[#080d14] text-slate-100 border border-slate-800 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            />
-          </label>
-
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
-            Password
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="mt-1 w-full bg-[#080d14] text-slate-100 border border-slate-800 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            />
-          </label>
-
-          {error && (
-            <p role="alert" className="text-xs text-rose-400 bg-rose-950/40 border border-rose-800/60 p-2.5 rounded-xl">
-              {error}
-            </p>
-          )}
-
-          {message && (
-            <p role="status" className="text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-800/60 p-2.5 rounded-xl">
-              {message}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50 transition-colors shadow-lg shadow-emerald-950/40"
-          >
-            {loading
-              ? "Please wait…"
-              : mode === "signup"
-                ? "Create account and accept"
-                : "Sign in and accept"}
-          </button>
-        </form>
-
-        <p className="mt-4 text-center text-xs text-slate-400">
-          Need help? Return to the{" "}
-          <Link to="/login" className="underline text-emerald-400 hover:text-emerald-300">
+    <AuthLayout
+      eyebrow="You're invited"
+      title="Join the project"
+      description="Sign in or create an account with the email address that was invited."
+      footer={
+        <p className="text-[12px] text-[var(--text-muted)]">
+          Need help? Return to the{' '}
+          <Link to="/login" className="font-semibold text-[var(--accent)] hover:underline">
             login page
           </Link>
           .
         </p>
-      </section>
-    </main>
+      }
+    >
+      {invitationLoading ? (
+        <p className="text-[12.5px] text-[var(--text-muted)]">Loading invitation details…</p>
+      ) : invitation ? (
+        <div className="mb-5 rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-4">
+          <p className="text-[12.5px] text-[var(--text-secondary)]">
+            You've been invited to join{' '}
+            <strong className="text-[var(--text-primary)]">{invitation.project_name}</strong>.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11.5px] text-[var(--text-muted)]">
+            <span className="inline-flex items-center gap-1.5">
+              <Mail className="h-3 w-3" /> {invitation.email}
+            </span>
+            <span className="capitalize">Role · {invitation.role}</span>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mb-5">
+        <SegmentedControl
+          value={mode}
+          onChange={setMode}
+          className="w-full [&>button]:flex-1"
+          options={[
+            { value: 'login', label: 'Sign in' },
+            { value: 'signup', label: 'Create account' },
+          ]}
+        />
+      </div>
+
+      <form onSubmit={submit} className="space-y-4">
+        {mode === 'signup' && (
+          <Input
+            label="Invited email"
+            type="email"
+            required
+            value={invitation?.email || email}
+            onChange={(event) => setEmail(event.target.value)}
+            readOnly={Boolean(invitation?.email)}
+            leftIcon={<Mail className="h-4 w-4" />}
+          />
+        )}
+        <Input
+          label="Username"
+          required
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
+          leftIcon={<User className="h-4 w-4" />}
+        />
+        <Input
+          label="Password"
+          type="password"
+          required
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          leftIcon={<Lock className="h-4 w-4" />}
+        />
+
+        {error && (
+          <p
+            role="alert"
+            className="flex items-start gap-2 rounded-[8px] border border-[var(--error)]/25 bg-[var(--error-soft)] p-2.5 text-[11.5px] text-[var(--error)]"
+          >
+            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {error}
+          </p>
+        )}
+        {message && (
+          <p
+            role="status"
+            className="flex items-start gap-2 rounded-[8px] border border-[var(--success)]/25 bg-[var(--success-soft)] p-2.5 text-[11.5px] text-[var(--success)]"
+          >
+            <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {message}
+          </p>
+        )}
+
+        <Button type="submit" size="lg" className="w-full" disabled={loading} isLoading={loading}>
+          {mode === 'signup' ? 'Create account and accept' : 'Sign in and accept'}
+        </Button>
+      </form>
+    </AuthLayout>
   );
 }

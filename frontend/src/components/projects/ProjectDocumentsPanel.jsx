@@ -210,12 +210,12 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
 
       {/* Drag & Drop Visual Overlay */}
       {isDragging && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-emerald-400 bg-[#090e17]/95 backdrop-blur-sm pointer-events-none p-6 text-center shadow-2xl">
-          <div className="mb-3 rounded-full bg-emerald-500/10 p-5 ring-1 ring-emerald-500/30">
-            <UploadCloud className="h-10 w-10 text-emerald-400 animate-bounce" />
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-[var(--radius-card)] border-2 border-dashed border-[var(--accent)] bg-[var(--surface-inset)]/95 backdrop-blur-sm pointer-events-none p-6 text-center shadow-[var(--shadow-sm)]">
+          <div className="mb-3 rounded-full bg-[var(--accent)]/10 p-5 ring-1 ring-[var(--accent)]/30">
+            <UploadCloud className="h-10 w-10 text-[var(--accent)] animate-bounce" />
           </div>
-          <h3 className="text-lg font-bold text-slate-100">Drop your file here</h3>
-          <p className="mt-1 text-xs text-slate-400 max-w-sm">
+          <h3 className="text-lg font-bold text-[var(--text-primary)]">Drop your file here</h3>
+          <p className="mt-1 text-xs text-[var(--text-muted)] max-w-sm">
             We will import your local file and initialize real-time collaborative editing instantly.
           </p>
         </div>
@@ -225,7 +225,7 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between glass-card p-4">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="font-display text-base font-bold text-[var(--text-primary)] tracking-tight">Collaborative Docs</h3>
+            <h3 className="font-display text-[15px] font-semibold tracking-[-0.02em] text-[var(--text-primary)]">Project documents</h3>
             <span className="mono-label text-[var(--signal-teal)] bg-[var(--surface-raised)] px-2 py-0.5 rounded border border-[var(--border-subtle)] text-[10px]">
               CRDT LIVE
             </span>
@@ -243,7 +243,7 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
             disabled={loading}
             leftIcon={loading ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--signal-teal)]" /> : <RefreshCw className="h-3.5 w-3.5" />}
           >
-            REFRESH
+            Refresh
           </Button>
 
           {canEdit && (
@@ -261,16 +261,16 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
                 ) : (
                   <UploadCloud className="h-3.5 w-3.5 text-[var(--signal-teal)]" />
                 )}
-                <span>UPLOAD DOC</span>
+                <span>Upload</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setShowCreateForm((current) => !current)}
-                className="inline-flex items-center gap-1.5 rounded-[var(--btn-radius)] bg-[var(--signal-teal)] px-3 py-1.5 text-xs font-mono font-bold text-black hover:opacity-90 transition-opacity shadow-xs"
+                className="inline-flex items-center gap-1.5 rounded-[var(--radius-control)] bg-[var(--ink)] px-3 py-1.5 font-display text-xs font-semibold text-[var(--on-ink)] transition-opacity hover:opacity-90"
               >
                 <Plus className="h-3.5 w-3.5" />
-                <span>NEW DOC</span>
+                <span>New doc</span>
               </button>
             </>
           )}
@@ -281,7 +281,7 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
       {showCreateForm && (
         <form
           onSubmit={handleCreate}
-          className="flex flex-col gap-2.5 rounded-xl border border-slate-800 bg-[#0f1622] p-4 sm:flex-row shadow-xl"
+          className="flex flex-col gap-2.5 rounded-[10px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-4 sm:flex-row shadow-[var(--shadow-sm)]"
         >
           <input
             value={title}
@@ -290,19 +290,19 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
             required
             autoFocus
             placeholder="Document title, e.g. Technical Architecture Specification"
-            className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-[#090d14] px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50"
+            className="min-w-0 flex-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-inset)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-slate-500 outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/50"
           />
           <button
             type="submit"
             disabled={creating || !title.trim()}
-            className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center justify-center rounded-lg bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-white hover:bg-[var(--accent-strong)] disabled:opacity-50 transition-colors"
           >
             {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Create'}
           </button>
           <button
             type="button"
             onClick={() => setShowCreateForm(false)}
-            className="rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+            className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-raised)] px-3 py-2 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           >
             Cancel
           </button>
@@ -312,42 +312,42 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
       {/* Main Grid: Sidebar + Editor */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
         {/* Left Sidebar: Document List & Search */}
-        <aside className="flex flex-col rounded-2xl border border-slate-800/80 bg-[#0d131c] p-3.5 shadow-xl">
+        <aside className="flex flex-col rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface)] p-3.5 shadow-[var(--shadow-sm)]">
           {/* Search Bar */}
           <div className="relative mb-3">
-            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500 pointer-events-none" />
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-[var(--text-muted)] pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search docs..."
-              className="w-full rounded-lg border border-slate-800/80 bg-[#080c12] pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-emerald-500/80 transition-colors"
+              className="w-full rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-inset)] pl-8 pr-3 py-1.5 text-xs text-[var(--text-primary)] placeholder-slate-500 outline-none focus:border-[var(--accent)]/80 transition-colors"
             />
           </div>
 
           <div className="flex items-center justify-between px-1 pb-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
               Documents ({filteredDocuments.length})
             </span>
             {canEdit && (
-              <span className="text-[10px] text-slate-500">
+              <span className="text-[10px] text-[var(--text-muted)]">
                 Drag & drop files
               </span>
             )}
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center gap-2 p-6 text-xs text-slate-500">
-              <Loader2 className="h-4 w-4 animate-spin text-emerald-400" />
+            <div className="flex items-center justify-center gap-2 p-6 text-xs text-[var(--text-muted)]">
+              <Loader2 className="h-4 w-4 animate-spin text-[var(--accent)]" />
               <span>Loading documents…</span>
             </div>
           ) : filteredDocuments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-6 text-center border border-dashed border-slate-800/80 rounded-xl my-2">
-              <FileCode className="h-6 w-6 text-slate-600 mb-2" />
-              <p className="text-xs font-medium text-slate-400">
+            <div className="flex flex-col items-center justify-center p-6 text-center border border-dashed border-[var(--border-subtle)] rounded-[10px] my-2">
+              <FileCode className="h-6 w-6 text-[var(--text-muted)] mb-2" />
+              <p className="text-xs font-medium text-[var(--text-muted)]">
                 {searchQuery ? 'No matching documents' : 'No documents yet'}
               </p>
-              <p className="text-[11px] text-slate-500 mt-1">
+              <p className="text-[11px] text-[var(--text-muted)] mt-1">
                 {canEdit ? 'Create or drop a file from your computer.' : 'Documents will appear here.'}
               </p>
             </div>
@@ -358,29 +358,29 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
                 return (
                   <div
                     key={document.id}
-                    className={`group relative flex items-center justify-between rounded-xl px-3 py-2.5 text-sm transition-all cursor-pointer ${
+                    className={`group relative flex items-center justify-between rounded-[10px] px-3 py-2.5 text-sm transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-[#15202e] text-slate-100 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.08)]'
-                        : 'text-slate-400 hover:bg-[#111925] hover:text-slate-200 border border-transparent'
+                        ? 'bg-[var(--surface-hover)] text-[var(--text-primary)] border border-[var(--accent)]/30 shadow-[0_0_15px_rgba(16,185,129,0.08)]'
+                        : 'text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)] border border-transparent'
                     }`}
                     onClick={() => setSelectedDocument(document)}
                   >
                     {/* Active accent bar */}
                     {isSelected && (
-                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-emerald-400" />
+                      <span className="absolute bottom-2 left-0 top-2 w-[2px] rounded-full bg-[var(--accent)]" />
                     )}
 
                     <div className="flex min-w-0 flex-1 items-start gap-2.5">
                       <FileText
                         className={`mt-0.5 h-4 w-4 shrink-0 transition-colors ${
-                          isSelected ? 'text-emerald-400' : 'text-slate-500 group-hover:text-slate-400'
+                          isSelected ? 'text-[var(--accent)]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-muted)]'
                         }`}
                       />
                       <div className="min-w-0 flex-1">
-                        <p className={`truncate text-xs font-semibold ${isSelected ? 'text-slate-100' : 'text-slate-300'}`}>
+                        <p className={`truncate text-xs font-semibold ${isSelected ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
                           {document.title}
                         </p>
-                        <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                        <p className="text-[10px] text-[var(--text-muted)] truncate mt-0.5">
                           {document.created_by_username ? `@${document.created_by_username} • ` : ''}
                           {new Date(document.created_at).toLocaleDateString()}
                         </p>
@@ -396,7 +396,7 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
                         }}
                         disabled={deletingId === document.id}
                         title="Delete document"
-                        className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-rose-400 rounded transition-opacity"
+                        className="opacity-0 group-hover:opacity-100 p-1 text-[var(--text-muted)] hover:text-[var(--error)] rounded transition-opacity"
                       >
                         {deletingId === document.id ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -412,12 +412,12 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
           )}
 
           {/* Local storage upload tip banner */}
-          <div className="mt-3 rounded-xl border border-slate-800/80 bg-[#080c13] p-3 text-[11px] text-slate-400 flex items-center justify-between">
-            <span className="text-slate-400">Import local notes</span>
+          <div className="mt-3 rounded-[10px] border border-[var(--border-subtle)] bg-[var(--surface-inset)] p-3 text-[11px] text-[var(--text-muted)] flex items-center justify-between">
+            <span className="text-[var(--text-muted)]">Import local notes</span>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="text-emerald-400 hover:text-emerald-300 font-semibold inline-flex items-center gap-1"
+              className="text-[var(--accent)] hover:text-[var(--accent)] font-semibold inline-flex items-center gap-1"
             >
               Browse <UploadCloud className="h-3 w-3" />
             </button>
@@ -430,10 +430,10 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
             <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-3 px-1 py-1">
                 <div>
-                  <h4 className="text-lg font-bold text-slate-100 tracking-tight">
+                  <h4 className="text-lg font-bold text-[var(--text-primary)] tracking-tight">
                     {selectedDocument.title}
                   </h4>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">
                     Created {new Date(selectedDocument.created_at).toLocaleDateString()}
                     {selectedDocument.created_by_username ? ` by @${selectedDocument.created_by_username}` : ''}
                   </p>
@@ -444,7 +444,7 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
                     type="button"
                     onClick={handleExportDocument}
                     title="Export document as markdown"
-                    className="inline-flex items-center gap-1 rounded-lg border border-slate-800 bg-[#0f1622] px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:text-emerald-400 hover:border-slate-700 transition-colors"
+                    className="inline-flex items-center gap-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-raised)] px-2.5 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--border-subtle)] transition-colors"
                   >
                     <Download className="h-3.5 w-3.5" />
                     <span>Export</span>
@@ -455,7 +455,7 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
                       href={selectedDocument.embed_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-slate-800 bg-[#0f1622] px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors"
+                      className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-raised)] px-2.5 py-1.5 text-xs font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                       title="Open legacy Etherpad view"
                     >
                       Etherpad <ExternalLink className="h-3 w-3" />
@@ -472,12 +472,12 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
               />
             </div>
           ) : (
-            <div className="flex min-h-[420px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-800 bg-[#0c1017] p-8 text-center shadow-xl">
-              <div className="mb-4 rounded-2xl bg-emerald-950/40 border border-emerald-800/40 p-4 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
+            <div className="flex min-h-[420px] flex-col items-center justify-center rounded-[var(--radius-card)] border border-dashed border-[var(--border-subtle)] bg-[var(--surface-inset)] p-8 text-center shadow-[var(--shadow-sm)]">
+              <div className="mb-4 rounded-[var(--radius-card)] bg-[var(--accent-soft)] border border-[var(--accent)]/25 p-4 text-[var(--accent)] shadow-[0_0_20px_rgba(16,185,129,0.1)]">
                 <FileText className="h-8 w-8" />
               </div>
-              <h4 className="text-base font-bold text-slate-200">No document selected</h4>
-              <p className="mt-1 max-w-sm text-xs leading-5 text-slate-400">
+              <h4 className="text-base font-bold text-[var(--text-primary)]">No document selected</h4>
+              <p className="mt-1 max-w-sm text-xs leading-5 text-[var(--text-muted)]">
                 Choose a document from the left, or upload a markdown/text file from your computer to begin editing together.
               </p>
               {canEdit && (
@@ -485,15 +485,15 @@ export const ProjectDocumentsPanel = ({ projectId, canEdit }) => {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-700/60 bg-emerald-950/40 px-3.5 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-900/60 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--accent)]/25 bg-[var(--accent-soft)] px-3.5 py-2 text-xs font-semibold text-[var(--accent)] hover:bg-[var(--accent-soft)] transition-colors"
                   >
-                    <UploadCloud className="h-3.5 w-3.5 text-emerald-400" />
+                    <UploadCloud className="h-3.5 w-3.5 text-[var(--accent)]" />
                     <span>Upload local file</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowCreateForm(true)}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white hover:bg-emerald-500 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[var(--accent-strong)] transition-colors"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     <span>Create blank doc</span>

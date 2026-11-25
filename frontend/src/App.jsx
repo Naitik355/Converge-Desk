@@ -18,7 +18,7 @@ import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { AcceptProjectInvitationPage } from './pages/AcceptProjectInvitationPage';
-import { CollaborativeEditorTestPage } from './pages/CollaborativeEditorTestPage';
+import { DocumentsPage } from './pages/DocumentsPage';
 
 const HomeRoute = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -26,7 +26,7 @@ const HomeRoute = () => {
   if (isLoading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-[var(--surface-canvas)]">
-        <div className="w-6 h-6 border-2 border-[var(--signal-teal)] border-t-transparent rounded-full animate-spin" />
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
       </div>
     );
   }
@@ -66,10 +66,11 @@ export default function App() {
                   element={<BoardViewPage />}
                 />
                 <Route path="/tasks" element={<TasksPage />} />
+                <Route path="/documents" element={<DocumentsPage />} />
                 <Route path="/whiteboards" element={<WhiteboardsPage />} />
                 <Route path="/code" element={<CodeWorkspacePage />} />
                 <Route path="/meetings" element={<MeetingsPage />} />
-                <Route path="/collaborative-editor-test" element={<CollaborativeEditorTestPage />} />
+                <Route path="/collaborative-editor-test" element={<DocumentsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>

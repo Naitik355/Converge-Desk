@@ -1,5 +1,10 @@
 import React from 'react';
 
+const fieldBase =
+  'w-full bg-[var(--surface)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] ' +
+  'text-[13px] rounded-[var(--radius-control)] border transition-all duration-150 font-sans ' +
+  'focus:outline-none focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[var(--accent-soft)]';
+
 export const Input = React.forwardRef(
   ({ label, error, helperText, leftIcon, rightIcon, className = '', id, ...props }, ref) => {
     const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
@@ -7,38 +12,41 @@ export const Input = React.forwardRef(
     return (
       <div className="w-full space-y-1.5 text-left">
         {label && (
-          <label htmlFor={inputId} className="block text-xs font-mono font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+          <label
+            htmlFor={inputId}
+            className="flex items-center gap-1.5 font-display text-xs font-semibold text-[var(--text-secondary)]"
+          >
             {label}
           </label>
         )}
-        <div className="relative rounded-[var(--btn-radius)]">
+        <div className="relative">
           {leftIcon && (
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--text-muted)]">
               {leftIcon}
             </div>
           )}
           <input
             id={inputId}
             ref={ref}
-            className={`w-full bg-[var(--surface-canvas)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] text-xs sm:text-sm rounded-[var(--btn-radius)] border transition-all duration-150 py-2.5 font-mono ${
-              leftIcon ? 'pl-10' : 'pl-3.5'
-            } ${rightIcon ? 'pr-10' : 'pr-3.5'} ${
+            className={`${fieldBase} h-10 ${leftIcon ? 'pl-9' : 'pl-3'} ${
+              rightIcon ? 'pr-9' : 'pr-3'
+            } ${
               error
-                ? 'border-[var(--signal-coral)] focus:border-[var(--signal-coral)] focus:ring-1 focus:ring-[var(--signal-coral)]/30'
-                : 'border-[var(--border-subtle)] hover:border-[var(--text-muted)] focus:border-[var(--signal-teal)] focus:ring-1 focus:ring-[var(--signal-teal)]/30'
-            } focus:outline-none ${className}`}
+                ? 'border-[var(--error)] focus:border-[var(--error)] focus:ring-[var(--error-soft)]'
+                : 'border-[var(--border-subtle)] hover:border-[var(--border-strong)]'
+            } ${className}`}
             {...props}
           />
           {rightIcon && (
-            <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[var(--text-muted)]">
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--text-muted)]">
               {rightIcon}
             </div>
           )}
         </div>
         {error ? (
-          <p className="text-xs font-mono text-[var(--signal-coral)] font-medium">{error}</p>
+          <p className="text-xs text-[var(--error)] font-medium">{error}</p>
         ) : helperText ? (
-          <p className="text-xs font-mono text-[var(--text-muted)]">{helperText}</p>
+          <p className="sx-caption">{helperText}</p>
         ) : null}
       </div>
     );

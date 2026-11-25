@@ -1,30 +1,28 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { getProject } from "../api/projects";
-import { ProjectMembersPanel } from "../components/projects/ProjectMembersPanel";
-import { ProjectDocumentsPanel } from "../components/projects/ProjectDocumentsPanel";
-import { CodeEditorPanel } from "../components/projects/CodeEditorPanel";
-import { getProjectTasks } from "../api/tasks";
-import { getProjectBoards, deleteBoard } from "../api/boards";
-import { TaskBoard } from "../components/tasks/TaskBoard";
-import { BoardCard } from "../components/boards/BoardCard";
-import { CreateBoardModal } from "../components/boards/CreateBoardModal";
-import { EditProjectModal } from "../components/projects/EditProjectModal";
-import { DeleteProjectDialog } from "../components/projects/DeleteProjectDialog";
-import { RoleBadge } from "../components/common/Badge";
-import { Button } from "../components/common/Button";
-import { EmptyState } from "../components/common/EmptyState";
-import { getProjectMeetings } from "../api/meetings";
-import { useMeeting } from "../context/MeetingContext";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { getProject } from '../api/projects';
+import { ProjectMembersPanel } from '../components/projects/ProjectMembersPanel';
+import { ProjectDocumentsPanel } from '../components/projects/ProjectDocumentsPanel';
+import { CodeEditorPanel } from '../components/projects/CodeEditorPanel';
+import { getProjectTasks } from '../api/tasks';
+import { getProjectBoards, deleteBoard } from '../api/boards';
+import { TaskBoard } from '../components/tasks/TaskBoard';
+import { BoardCard } from '../components/boards/BoardCard';
+import { CreateBoardModal } from '../components/boards/CreateBoardModal';
+import { EditProjectModal } from '../components/projects/EditProjectModal';
+import { DeleteProjectDialog } from '../components/projects/DeleteProjectDialog';
+import { RoleBadge } from '../components/common/Badge';
+import { Button } from '../components/common/Button';
+import { EmptyState } from '../components/common/EmptyState';
+import { Panel } from '../components/common/Card';
+import { StatTile } from '../components/common/StatTile';
+import { getProjectMeetings } from '../api/meetings';
+import { useMeeting } from '../context/MeetingContext';
+import { PageHeaderSkeleton, CardSkeleton } from '../components/common/LoadingSkeleton';
 import {
-  PageHeaderSkeleton,
-  CardSkeleton,
-} from "../components/common/LoadingSkeleton";
-import {
-  FolderKanban,
   FileText,
-  CheckSquare,
-  Presentation,
+  ListChecks,
+  Shapes,
   Users,
   Settings as SettingsIcon,
   Plus,
@@ -35,12 +33,15 @@ import {
   Play,
   Video,
   Code2,
-} from "lucide-react";
-import { useToast } from "../context/ToastContext";
+  CheckCircle2,
+  CalendarDays,
+  AlertCircle,
+} from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 export const ProjectDetailPage = () => {
   const { projectId } = useParams();
-  const idNum = parseInt(projectId || "0", 10);
+  const idNum = parseInt(projectId || '0', 10);
   const navigate = useNavigate();
   const { startMeeting } = useMeeting();
   const { success, error: toastError } = useToast();
@@ -48,14 +49,14 @@ export const ProjectDetailPage = () => {
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [boards, setBoards] = useState([]);
-  const [activeTab, setActiveTab] = useState("tasks");
+  const [activeTab, setActiveTab] = useState('tasks');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Modals
   const [isCreateBoardOpen, setIsCreateBoardOpen] = useState(false);
   const [isEditProjectOpen, setIsEditProjectOpen] = useState(false);
   const [isDeleteProjectOpen, setIsDeleteProjectOpen] = useState(false);
+
   const loadProjectData = useCallback(async () => {
     if (!idNum) return;
     setIsLoading(true);
@@ -72,7 +73,7 @@ export const ProjectDetailPage = () => {
       setTasks(taskList);
       setBoards(boardList);
     } catch (err) {
-      setError(err?.message || "Failed to load project details.");
+      setError(err?.message || 'Failed to load project details.');
     } finally {
       setIsLoading(false);
     }
@@ -80,15 +81,10 @@ export const ProjectDetailPage = () => {
 
   const loadMeetings = useCallback(async () => {
     if (!idNum) return;
-
     try {
-      const data = await getProjectMeetings(idNum);
-      setProjectMeetings(data);
+      setProjectMeetings(await getProjectMeetings(idNum));
     } catch (err) {
-      toastError(
-        "Could not load meetings",
-        err?.message || "Please try again.",
-      );
+      toastError('Could not load meetings', err?.message || 'Please try again.');
     }
   }, [idNum, toastError]);
 
@@ -101,21 +97,21 @@ export const ProjectDetailPage = () => {
   }, [loadMeetings]);
 
   const handleDeleteBoard = async (boardId) => {
-    if (!confirm("Are you sure you want to delete this whiteboard?")) return;
+    if (!confirm('Are you sure you want to delete this whiteboard?')) return;
     try {
       await deleteBoard(boardId);
-      success("Whiteboard Deleted", "Board removed from workspace.");
+      success('Whiteboard deleted', 'Board removed from the project.');
       setBoards((prev) => prev.filter((b) => b.id !== boardId));
     } catch (err) {
-      toastError("Delete Failed", err?.message || "Could not delete board.");
+      toastError('Delete failed', err?.message || 'Could not delete board.');
     }
   };
 
   if (isLoading) {
     return (
-      <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+      <div className="mx-auto max-w-[1440px] space-y-6 p-5 md:p-8">
         <PageHeaderSkeleton />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <CardSkeleton />
           <CardSkeleton />
           <CardSkeleton />
@@ -126,138 +122,179 @@ export const ProjectDetailPage = () => {
 
   if (error || !project) {
     return (
-      <div className="p-4 md:p-8 max-w-3xl mx-auto text-center space-y-4">
-        <div className="p-6 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800">
-          <p className="font-semibold text-base mb-1">
-            Project Not Found or Access Denied
+      <div className="mx-auto max-w-2xl p-8 pt-16 text-center">
+        <div className="rounded-[var(--radius-panel)] border border-[var(--error)]/30 bg-[var(--error-soft)] p-8">
+          <AlertCircle className="mx-auto mb-3 h-6 w-6 text-[var(--error)]" />
+          <p className="font-display text-[15px] font-semibold text-[var(--error)]">
+            Project unavailable
           </p>
-          <p className="text-xs text-rose-600">
-            {error || "Could not retrieve project data."}
+          <p className="mt-1 text-[12.5px] text-[var(--text-muted)]">
+            {error || 'Could not retrieve project data.'}
           </p>
         </div>
         <Button
           variant="outline"
-          onClick={() => navigate("/projects")}
+          className="mt-4"
+          onClick={() => navigate('/projects')}
           leftIcon={<ArrowLeft className="w-4 h-4" />}
         >
-          Back to Projects
+          Back to projects
         </Button>
       </div>
     );
   }
 
-  const canEdit = project.role !== "viewer";
-  const isOwner = project.role === "owner";
+  const canEdit = project.role !== 'viewer';
+  const isOwner = project.role === 'owner';
+  const completed = tasks.filter((t) => t.status === 'done').length;
+  const completion = tasks.length ? Math.round((completed / tasks.length) * 100) : 0;
+  const created = project.created_at
+    ? new Date(project.created_at).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : null;
+
+  const tabs = [
+    { id: 'tasks', label: 'Tasks', icon: ListChecks, count: tasks.length },
+    { id: 'whiteboards', label: 'Whiteboards', icon: Shapes, count: boards.length },
+    { id: 'docs', label: 'Documents', icon: FileText },
+    { id: 'code', label: 'Code', icon: Code2 },
+    { id: 'members', label: 'Members', icon: Users },
+    { id: 'meetings', label: 'Meetings', icon: Video, count: projectMeetings.length },
+    { id: 'settings', label: 'Settings', icon: SettingsIcon },
+  ];
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 text-slate-100">
-      {/* Top Breadcrumb & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
+    <div className="mx-auto w-full max-w-[1440px] p-5 md:p-8 space-y-6 text-[var(--text-primary)]">
+      {/* Project header */}
+      <div className="overflow-hidden rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface)]">
+        <div className="relative border-b border-[var(--border-subtle)] px-5 py-6 sm:px-7">
+          <div className="pointer-events-none absolute right-0 top-0 h-40 w-72 rounded-bl-[140px] bg-[var(--accent-soft)] opacity-60" />
+          <div className="relative">
             <button
-              onClick={() => navigate("/projects")}
-              className="hover:text-emerald-400 transition-colors flex items-center gap-1 font-medium cursor-pointer"
+              onClick={() => navigate('/projects')}
+              className="mb-4 inline-flex items-center gap-1.5 font-display text-[11.5px] font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)] cursor-pointer"
             >
-              <ArrowLeft className="w-3.5 h-3.5" /> Projects
+              <ArrowLeft className="h-3.5 w-3.5" /> All projects
             </button>
-            <span>/</span>
-            <span className="text-slate-200 font-semibold">{project.name}</span>
-          </div>
 
-          <div className="flex items-center gap-3">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              {project.name}
-            </h2>
-            <RoleBadge role={project.role} />
-          </div>
-
-          {project.description && (
-            <p className="text-xs font-mono text-[var(--text-muted)] max-w-2xl leading-relaxed">
-              {project.description}
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {canEdit && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsEditProjectOpen(true)}
-              leftIcon={<Edit2 className="w-3.5 h-3.5" />}
-              className="border-[var(--border-subtle)] bg-[var(--surface-raised)] text-[var(--text-primary)] hover:bg-[var(--surface-card)]"
-            >
-              Edit Details
-            </Button>
-          )}
-          {isOwner && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsDeleteProjectOpen(true)}
-              className="text-[var(--signal-coral)] hover:bg-rose-500/10"
-              leftIcon={<Trash2 className="w-3.5 h-3.5" />}
-            >
-              Delete
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Tabs Navigation */}
-      <div className="flex items-center gap-1.5 border-b border-[var(--border-subtle)] overflow-x-auto pb-px">
-        {[
-          {
-            id: "tasks",
-            label: "Tasks",
-            icon: CheckSquare,
-            count: tasks.length,
-          },
-          {
-            id: "whiteboards",
-            label: "Whiteboards",
-            icon: Presentation,
-            count: boards.length,
-          },
-          { id: "docs", label: "Docs & Notes", icon: FileText },
-          { id: "code", label: "Code Editor", icon: Code2 },
-          { id: "members", label: "Members & Roles", icon: Users },
-          { id: "meetings", label: "Meetings", icon: Video },
-          { id: "settings", label: "Settings", icon: SettingsIcon },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-3.5 py-2.5 text-xs font-mono font-semibold rounded-t-[var(--card-radius)] border-b-2 -mb-px transition-all cursor-pointer whitespace-nowrap ${
-                isActive
-                  ? "border-[var(--signal-teal)] text-[var(--signal-teal)] bg-[var(--surface-raised)]"
-                  : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-raised)]"
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{tab.label}</span>
-              {tab.count !== undefined && (
-                <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
-                    isActive
-                      ? "bg-[var(--signal-teal)]/20 text-[var(--signal-teal)] border border-[var(--signal-teal)]/40"
-                      : "bg-[var(--surface-canvas)] text-[var(--text-muted)] border border-[var(--border-subtle)]"
-                  }`}
-                >
-                  {tab.count}
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex min-w-0 items-start gap-4">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] bg-[var(--accent-soft)] font-display text-[18px] font-bold text-[var(--accent)]">
+                  {(project.name?.[0] || 'P').toUpperCase()}
                 </span>
-              )}
-            </button>
-          );
-        })}
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <h1 className="sx-display-m">{project.name}</h1>
+                    <RoleBadge role={project.role} />
+                  </div>
+                  <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-[var(--text-muted)]">
+                    {project.description || 'No description yet. Edit the project to add goals and context.'}
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-[var(--text-muted)]">
+                    {created && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <CalendarDays className="h-3 w-3" /> Created {created}
+                      </span>
+                    )}
+                    <span className="inline-flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3 w-3" /> {completion}% complete
+                    </span>
+                    <span className="font-mono">ID #{project.id}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                {canEdit && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setIsEditProjectOpen(true)}
+                    leftIcon={<Edit2 className="h-3.5 w-3.5" />}
+                  >
+                    Edit
+                  </Button>
+                )}
+                {isOwner && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsDeleteProjectOpen(true)}
+                    leftIcon={<Trash2 className="h-3.5 w-3.5" />}
+                    className="text-[var(--error)] hover:bg-[var(--error-soft)]"
+                  >
+                    Delete
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 divide-x divide-[var(--border-subtle)] sm:grid-cols-4">
+          {[
+            { label: 'Tasks', value: tasks.length, hint: `${completed} done`, icon: ListChecks },
+            { label: 'In flight', value: tasks.length - completed, hint: 'Open work', icon: Play },
+            { label: 'Whiteboards', value: boards.length, hint: 'Live canvases', icon: Shapes },
+            { label: 'Completion', value: `${completion}%`, hint: 'Tasks closed', icon: CheckCircle2 },
+          ].map((metric) => (
+            <div key={metric.label} className="flex items-center gap-3 px-5 py-4">
+              <metric.icon className="h-4 w-4 shrink-0 text-[var(--text-muted)]" />
+              <div>
+                <p className="sx-eyebrow">{metric.label}</p>
+                <p className="mt-1 font-display text-[18px] font-bold leading-none tracking-[-0.03em]">
+                  {metric.value}
+                </p>
+                <p className="mt-1 text-[10.5px] text-[var(--text-muted)]">{metric.hint}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Tab Contents */}
-      {activeTab === "tasks" && (
+      {/* Section nav */}
+      <div className="sticky top-16 z-20 -mx-1 border-b border-[var(--border-subtle)] bg-[var(--canvas)]/90 px-1 backdrop-blur-md">
+        <div className="flex gap-1 overflow-x-auto pb-px">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative flex shrink-0 items-center gap-2 rounded-t-[8px] px-3.5 py-3 font-display text-[12px] font-semibold transition-colors cursor-pointer ${
+                  isActive
+                    ? 'text-[var(--accent)]'
+                    : 'text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {tab.label}
+                {tab.count !== undefined && (
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[9.5px] ${
+                      isActive
+                        ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
+                        : 'bg-[var(--surface-inset)] text-[var(--text-muted)]'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                )}
+                {isActive && (
+                  <span className="absolute inset-x-2 bottom-0 h-[2px] rounded-full bg-[var(--accent)]" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Sections */}
+      {activeTab === 'tasks' && (
         <TaskBoard
           tasks={tasks}
           projectId={project.id}
@@ -266,39 +303,45 @@ export const ProjectDetailPage = () => {
         />
       )}
 
-      {activeTab === "whiteboards" && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-bold text-slate-900">
-                Project Whiteboards
-              </h3>
-              <p className="text-xs text-slate-500">
-                Multiplayer Excalidraw whiteboards tied to this project
-              </p>
-            </div>
-            {canEdit && (
+      {activeTab === 'whiteboards' && (
+        <Panel
+          eyebrow="Canvas"
+          title="Project whiteboards"
+          description="Multiplayer diagrams tied to this project."
+          bodyClassName="p-4"
+          actions={
+            canEdit && (
               <Button
                 size="sm"
+                variant="primary"
                 onClick={() => setIsCreateBoardOpen(true)}
-                leftIcon={<Plus className="w-4 h-4" />}
+                leftIcon={<Plus className="h-3.5 w-3.5" />}
               >
-                New Whiteboard
+                New whiteboard
               </Button>
-            )}
-          </div>
-
+            )
+          }
+        >
           {boards.length === 0 ? (
             <EmptyState
-              icon={<Presentation className="w-7 h-7" />}
+              icon={<Shapes className="w-5 h-5" />}
               title="No whiteboards yet"
-              description="Create a whiteboard to start drawing flowcharts, wireframes, and architecture diagrams in real-time."
-              actionLabel={canEdit ? "Create First Whiteboard" : undefined}
-              actionIcon={<Plus className="w-4 h-4" />}
-              onAction={() => setIsCreateBoardOpen(true)}
+              description="Create a canvas for flowcharts, wireframes and architecture diagrams."
+              compact
+              action={
+                canEdit && (
+                  <Button
+                    size="sm"
+                    onClick={() => setIsCreateBoardOpen(true)}
+                    leftIcon={<Plus className="h-3.5 w-3.5" />}
+                  >
+                    Create whiteboard
+                  </Button>
+                )
+              }
             />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
               {boards.map((board) => (
                 <BoardCard
                   key={board.id}
@@ -310,57 +353,56 @@ export const ProjectDetailPage = () => {
               ))}
             </div>
           )}
-        </div>
+        </Panel>
       )}
 
-      {activeTab === "docs" && (
+      {activeTab === 'docs' && (
         <ProjectDocumentsPanel projectId={project.id} canEdit={canEdit} />
       )}
 
-      <div className={activeTab === "code" ? "block" : "hidden"}>
+      <div className={activeTab === 'code' ? 'block' : 'hidden'}>
         <CodeEditorPanel projectId={project.id} canEdit={canEdit} />
       </div>
 
-      {activeTab === "members" && (
+      {activeTab === 'members' && (
         <ProjectMembersPanel projectId={project.id} isOwner={isOwner} />
       )}
 
-      {activeTab === "meetings" && (
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-base font-bold text-slate-900">
-              Project Meetings
-            </h3>
-            <p className="text-xs text-slate-500">
-              Meetings for {project.name}.
-            </p>
-          </div>
-
+      {activeTab === 'meetings' && (
+        <Panel
+          eyebrow="Rooms"
+          title="Project meetings"
+          description={`Live rooms for ${project.name}.`}
+          bodyClassName="p-4"
+          actions={
+            <Button size="sm" variant="secondary" onClick={() => navigate('/meetings')}>
+              Open meetings
+            </Button>
+          }
+        >
           {projectMeetings.length === 0 ? (
             <EmptyState
-              icon={<Video className="h-7 w-7" />}
+              icon={<Video className="w-5 h-5" />}
               title="No meetings yet"
-              description="Create a meeting for this project from the Meetings page."
-              actionLabel="Open Meetings"
-              onAction={() => navigate("/meetings")}
+              description="Create a room from the meetings page and invite project members."
+              compact
+              actionLabel="Open meetings"
+              onAction={() => navigate('/meetings')}
             />
           ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {projectMeetings.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between gap-4 rounded-xl border border-slate-800 bg-[#0d131c] p-4 text-slate-100"
+                  className="flex items-center justify-between gap-4 rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-4"
                 >
                   <div className="min-w-0">
-                    <h4 className="truncate text-sm font-bold text-slate-100">
-                      {item.title}
-                    </h4>
-                    <p className="mt-1 break-all font-mono text-xs text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700/60 inline-block">
+                    <h4 className="truncate font-display text-[13px] font-semibold">{item.title}</h4>
+                    <p className="mt-1 inline-block truncate rounded-[5px] border border-[var(--border-subtle)] bg-[var(--surface)] px-2 py-0.5 font-mono text-[10.5px] text-[var(--text-muted)]">
                       {item.roomName}
                     </p>
                   </div>
-
-                  <div className="flex shrink-0 flex-col gap-2">
+                  <div className="flex shrink-0 flex-col gap-1.5">
                     <Button
                       size="sm"
                       onClick={() => startMeeting(item.title, item.roomName)}
@@ -368,90 +410,87 @@ export const ProjectDetailPage = () => {
                     >
                       Join
                     </Button>
-
                     <Button
                       size="sm"
-                      variant="outline"
+                      variant="ghost"
                       onClick={async () => {
                         try {
                           await navigator.clipboard.writeText(item.roomName);
-                          success("Room code copied", item.roomName);
+                          success('Room code copied', item.roomName);
                         } catch {
-                          toastError(
-                            "Could not copy room code",
-                            "Please copy it manually.",
-                          );
+                          toastError('Could not copy room code', 'Please copy it manually.');
                         }
                       }}
                       leftIcon={<Copy className="h-3.5 w-3.5" />}
                     >
-                      Copy code
+                      Copy
                     </Button>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </Panel>
       )}
 
-      {activeTab === "settings" && (
-        <div className="max-w-2xl bg-[#0d141e] rounded-2xl border border-slate-800 p-6 space-y-6 shadow-xl">
-          <div className="space-y-1">
-            <h3 className="text-base font-bold text-white">
-              Project Settings
-            </h3>
-            <p className="text-xs text-slate-400">
-              Manage project metadata and administrative settings.
-            </p>
-          </div>
-
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-[#090d14]">
-              <div>
-                <p className="text-xs font-bold text-slate-200">
-                  Edit Project Details
-                </p>
-                <p className="text-[11px] text-slate-500">
-                  Update project name and description
-                </p>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={!canEdit}
-                onClick={() => setIsEditProjectOpen(true)}
-                className="border-slate-800 bg-[#0d141e] text-slate-300 hover:bg-[#121c29]"
-              >
-                Edit
-              </Button>
-            </div>
-
-            {isOwner && (
-              <div className="flex items-center justify-between p-3.5 rounded-xl border border-rose-900/60 bg-rose-950/20">
+      {activeTab === 'settings' && (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-4">
+            <Panel eyebrow="Project" title="General details" bodyClassName="p-5">
+              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <p className="text-xs font-bold text-rose-300">
-                    Danger Zone: Delete Project
-                  </p>
-                  <p className="text-[11px] text-rose-400">
-                    Permanently delete this project, all tasks, and associated
-                    whiteboards.
-                  </p>
+                  <dt className="sx-eyebrow">Name</dt>
+                  <dd className="mt-1.5 text-[13px] text-[var(--text-primary)]">{project.name}</dd>
                 </div>
+                <div>
+                  <dt className="sx-eyebrow">Your role</dt>
+                  <dd className="mt-1.5">
+                    <RoleBadge role={project.role} />
+                  </dd>
+                </div>
+                <div className="sm:col-span-2">
+                  <dt className="sx-eyebrow">Description</dt>
+                  <dd className="mt-1.5 text-[13px] leading-relaxed text-[var(--text-secondary)]">
+                    {project.description || 'No description provided.'}
+                  </dd>
+                </div>
+              </dl>
+              <div className="mt-5 border-t border-[var(--border-subtle)] pt-4">
                 <Button
                   size="sm"
-                  variant="danger"
-                  onClick={() => setIsDeleteProjectOpen(true)}
+                  variant="secondary"
+                  disabled={!canEdit}
+                  onClick={() => setIsEditProjectOpen(true)}
+                  leftIcon={<Edit2 className="h-3.5 w-3.5" />}
                 >
-                  Delete Project
+                  Edit project details
                 </Button>
               </div>
-            )}
+            </Panel>
           </div>
+
+          {isOwner && (
+            <div className="rounded-[var(--radius-card)] border border-[var(--error)]/25 bg-[var(--error-soft)] p-5">
+              <p className="sx-eyebrow text-[var(--error)]">Danger zone</p>
+              <h3 className="mt-2 font-display text-[14px] font-semibold text-[var(--error)]">
+                Delete this project
+              </h3>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-[var(--text-muted)]">
+                Permanently remove the project and its tasks, boards and documents. This cannot be undone.
+              </p>
+              <Button
+                size="sm"
+                variant="danger"
+                className="mt-4"
+                onClick={() => setIsDeleteProjectOpen(true)}
+              >
+                Delete project
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Modals */}
       <CreateBoardModal
         isOpen={isCreateBoardOpen}
         onClose={() => setIsCreateBoardOpen(false)}
@@ -466,18 +505,14 @@ export const ProjectDetailPage = () => {
         isOpen={isEditProjectOpen}
         onClose={() => setIsEditProjectOpen(false)}
         project={project}
-        onUpdated={() => {
-          loadProjectData();
-        }}
+        onUpdated={() => loadProjectData()}
       />
 
       <DeleteProjectDialog
         isOpen={isDeleteProjectOpen}
         onClose={() => setIsDeleteProjectOpen(false)}
         project={project}
-        onDeleted={() => {
-          navigate("/projects");
-        }}
+        onDeleted={() => navigate('/projects')}
       />
     </div>
   );

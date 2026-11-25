@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
+import { PageHeader } from '../components/common/PageHeader';
+import { Panel } from '../components/common/Card';
 import { getCookie, API_BASE_URL } from '../api/client';
 import { useToast } from '../context/ToastContext';
 import {
@@ -13,30 +14,36 @@ import {
   LogOut,
   User,
   Sliders,
-  ShieldAlert,
+  ShieldCheck,
+  KeyRound,
+  Link2,
 } from 'lucide-react';
+
+const SECTIONS = [
+  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'diagnostics', label: 'Diagnostics', icon: Server },
+  { id: 'integrations', label: 'Integrations', icon: Sliders },
+];
 
 export const SettingsPage = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
-  const [collabUrl, setCollabUrl] = useState(() => {
-    return localStorage.getItem('convergedesk_collab_server_url') || 'http://127.0.0.1:80';
-  });
-  const [geminiKey, setGeminiKey] = useState(() => {
-    return localStorage.getItem('convergedesk_gemini_key') || '';
-  });
-
+  const [collabUrl, setCollabUrl] = useState(
+    () => localStorage.getItem('convergedesk_collab_server_url') || 'http://127.0.0.1:80'
+  );
+  const [geminiKey, setGeminiKey] = useState(
+    () => localStorage.getItem('convergedesk_gemini_key') || ''
+  );
   const [apiStatus, setApiStatus] = useState('checking');
   const [csrfCookie, setCsrfCookie] = useState(null);
+  const [activeSection, setActiveSection] = useState('profile');
 
   const { success } = useToast();
 
   const runDiagnostics = async () => {
     setApiStatus('checking');
     try {
-      const res = await fetch(`${API_BASE_URL}/projects/list/`, {
-        credentials: 'include',
-      });
+      const res = await fetch(`${API_BASE_URL}/projects/list/`, { credentials: 'include' });
       if (res.ok || res.status === 401 || res.status === 403 || res.redirected) {
         setApiStatus('connected');
       } else {
@@ -45,7 +52,6 @@ export const SettingsPage = () => {
     } catch {
       setApiStatus('disconnected');
     }
-
     setCsrfCookie(getCookie('csrftoken'));
   };
 
@@ -53,148 +59,234 @@ export const SettingsPage = () => {
     runDiagnostics();
   }, []);
 
-  const handleSaveCollabUrl = () => {
-    localStorage.setItem('convergedesk_collab_server_url', collabUrl);
-    success('Settings Updated', `Collaboration server set to ${collabUrl}`);
-  };
-
-  const handleSaveGeminiKey = () => {
-    localStorage.setItem('convergedesk_gemini_key', geminiKey);
-    success('AI Key Saved', 'Gemini API key stored in local browser settings.');
+  const scrollTo = (id) => {
+    setActiveSection(id);
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-8 text-[var(--text-primary)]">
-      {/* Header */}
-      <div>
-        <h2 className="font-display text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-          Settings & Diagnostics
-        </h2>
-        <p className="text-xs font-mono text-[var(--text-muted)] mt-1">
-          // Manage system configurations, integration endpoints, and security documentation
-        </p>
-      </div>
+    <div className="mx-auto w-full max-w-[1200px] space-y-6 p-5 text-[var(--text-primary)] md:p-8">
+      <PageHeader
+        eyebrow="Account & system"
+        title="Settings"
+        description="Your identity, connection health and the integrations that power the workspace."
+      />
 
-      {/* User Profile Card */}
-      <Card className="space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)]">
-          <div className="flex items-center gap-2.5">
-            <User className="w-5 h-5 text-[var(--signal-teal)]" />
-            <h3 className="font-display text-sm font-bold text-[var(--text-primary)]">User Session & Identity</h3>
-          </div>
-          {isAuthenticated && (
-            <span className="text-[10px] font-mono font-semibold bg-[var(--surface-raised)] text-[var(--signal-teal)] px-2.5 py-0.5 rounded-full border border-[var(--border-subtle)]">
-              Authenticated Session
-            </span>
-          )}
-        </div>
-
-        {isAuthenticated && user ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
-            <div className="p-3 bg-[var(--surface-canvas)] rounded-[var(--card-radius)] border border-[var(--border-subtle)]">
-              <span className="text-[var(--text-muted)] block mb-0.5">User ID</span>
-              <span className="font-mono font-semibold text-[var(--signal-teal)]">#{user?.id}</span>
-            </div>
-            <div className="p-3 bg-[var(--surface-canvas)] rounded-[var(--card-radius)] border border-[var(--border-subtle)]">
-              <span className="text-[var(--text-muted)] block mb-0.5">Username</span>
-              <span className="font-semibold text-[var(--text-primary)]">{user?.username || 'User'}</span>
-            </div>
-            <div className="p-3 bg-[var(--surface-canvas)] rounded-[var(--card-radius)] border border-[var(--border-subtle)]">
-              <span className="text-[var(--text-muted)] block mb-0.5">Email</span>
-              <span className="text-[var(--text-primary)] truncate block">{user?.email || 'None'}</span>
-            </div>
-          </div>
-        ) : (
-          <p className="text-xs font-mono text-[var(--text-muted)] italic">No authenticated session active.</p>
-        )}
-
-        {isAuthenticated && (
-          <div className="pt-2 flex justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                await logout();
-                navigate('/landing');
-              }}
-              leftIcon={<LogOut className="w-3.5 h-3.5" />}
-              className="text-[var(--signal-coral)] border-[var(--signal-coral)]/40 hover:bg-rose-500/10"
-            >
-              Sign Out
-            </Button>
-          </div>
-        )}
-      </Card>
-
-      {/* Diagnostics and Health */}
-      <Card className="space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)]">
-          <div className="flex items-center gap-2.5">
-            <Server className="w-5 h-5 text-[var(--signal-teal)]" />
-            <h3 className="font-display text-sm font-bold text-[var(--text-primary)]">Live Backend Diagnostics</h3>
-          </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={runDiagnostics}
-            leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${apiStatus === 'checking' ? 'animate-spin' : ''}`} />}
-          >
-            Check Status
-          </Button>
-        </div>
-
-        <div className="space-y-3 text-xs">
-          {/* API Connectivity */}
-          <div className="flex items-center justify-between p-3.5 rounded-[var(--card-radius)] bg-[var(--surface-canvas)] border border-[var(--border-subtle)]">
-            <div>
-              <p className="font-semibold text-[var(--text-primary)]">Backend API Services</p>
-              <p className="text-[11px] text-[var(--text-muted)] font-mono mt-0.5">{API_BASE_URL}</p>
-            </div>
-            {apiStatus === 'checking' ? (
-              <span className="text-[var(--text-muted)] font-mono font-medium">Checking...</span>
-            ) : apiStatus === 'connected' ? (
-              <span className="flex items-center gap-1.5 font-mono font-semibold text-[var(--signal-teal)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] px-2.5 py-1 rounded-[var(--btn-radius)]">
-                <CheckCircle2 className="w-4 h-4" /> Connected
-              </span>
-            ) : (
-              <span className="flex items-center gap-1.5 font-mono font-semibold text-[var(--signal-coral)] bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 rounded-[var(--btn-radius)]">
-                <XCircle className="w-4 h-4" /> Disconnected
-              </span>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      {/* Integration Endpoints Configuration */}
-      <Card className="space-y-4">
-        <div className="flex items-center gap-2.5 pb-3 border-b border-[var(--border-subtle)]">
-          <Sliders className="w-5 h-5 text-[var(--signal-amber)]" />
-          <h3 className="font-display text-sm font-bold text-[var(--text-primary)]">AI & Canvas Configuration</h3>
-        </div>
-
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="block text-xs font-mono font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-              Gemini API Key (Drawing-to-Code Generation)
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="password"
-                value={geminiKey}
-                onChange={(e) => setGeminiKey(e.target.value)}
-                placeholder="AIzaSy..."
-                className="flex-1 px-3 py-2 bg-[var(--surface-canvas)] border border-[var(--border-subtle)] rounded-[var(--btn-radius)] text-xs font-mono text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--signal-teal)]"
-              />
-              <Button size="sm" onClick={handleSaveGeminiKey} className="bg-[var(--signal-teal)] text-black font-bold">
-                Save
-              </Button>
-            </div>
-            <p className="text-[11px] font-mono text-[var(--text-muted)]">
-              Used directly by the AI Drawing-to-Code panel to synthesize React and Tailwind code from canvas drawings.
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[210px_minmax(0,1fr)]">
+        <aside className="lg:sticky lg:top-24 lg:self-start">
+          <nav className="flex gap-1 overflow-x-auto rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface)] p-1.5 lg:flex-col">
+            {SECTIONS.map((section) => {
+              const Icon = section.icon;
+              const isActive = activeSection === section.id;
+              return (
+                <button
+                  key={section.id}
+                  onClick={() => scrollTo(section.id)}
+                  className={`flex shrink-0 items-center gap-2 rounded-[7px] px-3 py-2 text-left font-display text-[12px] font-semibold transition-colors ${
+                    isActive
+                      ? 'bg-[var(--accent-soft)] text-[var(--accent)]'
+                      : 'text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]'
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {section.label}
+                </button>
+              );
+            })}
+          </nav>
+          <div className="mt-3 hidden rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-3.5 lg:block">
+            <p className="sx-eyebrow">Environment</p>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-[var(--text-muted)]">
+              Client settings are stored locally in this browser. Secrets never leave your machine
+              except to the service that needs them.
             </p>
           </div>
+        </aside>
+
+        <div className="space-y-6">
+          {/* Profile */}
+          <div id="profile" className="scroll-mt-24">
+            <Panel
+              eyebrow="Identity"
+              title="Profile"
+              description="The account you're signed in with."
+              bodyClassName="p-5"
+              actions={
+                isAuthenticated && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--success-soft)] px-2.5 py-1 text-[10.5px] font-semibold text-[var(--success)]">
+                    <ShieldCheck className="h-3 w-3" /> Authenticated
+                  </span>
+                )
+              }
+            >
+              {isAuthenticated && user ? (
+                <>
+                  <div className="flex items-center gap-3.5">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent-soft)] font-display text-[16px] font-bold text-[var(--accent)]">
+                      {(user?.username?.[0] || 'U').toUpperCase()}
+                    </span>
+                    <div>
+                      <p className="font-display text-[15px] font-semibold">{user.username}</p>
+                      <p className="text-[12px] text-[var(--text-muted)]">{user.email || 'No email set'}</p>
+                    </div>
+                  </div>
+
+                  <dl className="mt-5 grid grid-cols-1 gap-px overflow-hidden rounded-[10px] border border-[var(--border-subtle)] bg-[var(--border-subtle)] sm:grid-cols-3">
+                    {[
+                      ['User ID', `#${user.id}`],
+                      ['Username', user.username],
+                      ['Email', user.email || '—'],
+                    ].map(([label, value]) => (
+                      <div key={label} className="bg-[var(--surface-raised)] px-3.5 py-3">
+                        <dt className="sx-eyebrow">{label}</dt>
+                        <dd className="mt-1 truncate text-[12px] text-[var(--text-primary)]">{value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+
+                  <div className="mt-5 flex justify-end border-t border-[var(--border-subtle)] pt-4">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={async () => {
+                        await logout();
+                        navigate('/landing');
+                      }}
+                      leftIcon={<LogOut className="h-3.5 w-3.5" />}
+                    >
+                      Sign out
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-[12.5px] text-[var(--text-muted)]">
+                  No authenticated session active.
+                </p>
+              )}
+            </Panel>
+          </div>
+
+          {/* Diagnostics */}
+          <div id="diagnostics" className="scroll-mt-24">
+            <Panel
+              eyebrow="System"
+              title="Connection health"
+              description="Verify the API endpoint this client is talking to."
+              bodyClassName="p-5"
+              actions={
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={runDiagnostics}
+                  leftIcon={<RefreshCw className={`h-3.5 w-3.5 ${apiStatus === 'checking' ? 'animate-spin' : ''}`} />}
+                >
+                  Check again
+                </Button>
+              }
+            >
+              <div className="flex flex-col gap-3 rounded-[10px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="font-display text-[12.5px] font-semibold">Backend API</p>
+                  <p className="mt-0.5 truncate font-mono text-[10.5px] text-[var(--text-muted)]">
+                    {API_BASE_URL}
+                  </p>
+                </div>
+                {apiStatus === 'checking' ? (
+                  <span className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
+                    <RefreshCw className="h-3.5 w-3.5 animate-spin" /> Checking
+                  </span>
+                ) : apiStatus === 'connected' ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--success-soft)] px-2.5 py-1 text-[10.5px] font-semibold text-[var(--success)]">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Connected
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--error-soft)] px-2.5 py-1 text-[10.5px] font-semibold text-[var(--error)]">
+                    <XCircle className="h-3.5 w-3.5" /> Disconnected
+                  </span>
+                )}
+              </div>
+
+              <div className="mt-3 flex items-center justify-between rounded-[10px] border border-[var(--border-subtle)] px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <KeyRound className="h-3.5 w-3.5 text-[var(--text-muted)]" />
+                  <span className="text-[12px] text-[var(--text-secondary)]">CSRF token</span>
+                </div>
+                <span className="font-mono text-[10.5px] text-[var(--text-muted)]">
+                  {csrfCookie ? 'Present' : 'Not found'}
+                </span>
+              </div>
+            </Panel>
+          </div>
+
+          {/* Integrations */}
+          <div id="integrations" className="scroll-mt-24">
+            <Panel
+              eyebrow="Studio"
+              title="Integrations & endpoints"
+              description="Local configuration for the canvas assistant and collaboration server."
+              bodyClassName="p-5"
+            >
+              <div className="space-y-5">
+                <div>
+                  <label className="mb-1.5 flex items-center gap-1.5 font-display text-xs font-semibold text-[var(--text-secondary)]">
+                    <Sliders className="h-3.5 w-3.5" /> Gemini API key
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="password"
+                      value={geminiKey}
+                      onChange={(e) => setGeminiKey(e.target.value)}
+                      placeholder="AIzaSy…"
+                      className="h-10 flex-1 rounded-[var(--radius-control)] border border-[var(--border-subtle)] bg-[var(--surface)] px-3 font-mono text-[12px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-soft)]"
+                    />
+                    <Button
+                      size="md"
+                      variant="secondary"
+                      onClick={() => {
+                        localStorage.setItem('convergedesk_gemini_key', geminiKey);
+                        success('Key saved', 'Gemini API key stored in local browser settings.');
+                      }}
+                    >
+                      Save
+                    </Button>
+                  </div>
+                  <p className="mt-1.5 text-[11px] text-[var(--text-muted)]">
+                    Used by the draw-to-code assistant to synthesise UI from a canvas.
+                  </p>
+                </div>
+
+                <div className="border-t border-[var(--border-subtle)] pt-5">
+                  <label className="mb-1.5 flex items-center gap-1.5 font-display text-xs font-semibold text-[var(--text-secondary)]">
+                    <Link2 className="h-3.5 w-3.5" /> Collaboration server
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={collabUrl}
+                      onChange={(e) => setCollabUrl(e.target.value)}
+                      placeholder="http://127.0.0.1:80"
+                      className="h-10 flex-1 rounded-[var(--radius-control)] border border-[var(--border-subtle)] bg-[var(--surface)] px-3 font-mono text-[12px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-soft)]"
+                    />
+                    <Button
+                      size="md"
+                      variant="secondary"
+                      onClick={() => {
+                        localStorage.setItem('convergedesk_collab_server_url', collabUrl);
+                        success('Settings updated', `Collaboration server set to ${collabUrl}`);
+                      }}
+                    >
+                      Save
+                    </Button>
+                  </div>
+                  <p className="mt-1.5 text-[11px] text-[var(--text-muted)]">
+                    Endpoint used by documents, canvases and the code workspace.
+                  </p>
+                </div>
+              </div>
+            </Panel>
+          </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

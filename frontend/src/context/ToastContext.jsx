@@ -24,66 +24,54 @@ export const ToastProvider = ({ children }) => {
 
       const duration = options?.duration ?? 4000;
       if (duration > 0) {
-        setTimeout(() => {
-          removeToast(id);
-        }, duration);
+        setTimeout(() => removeToast(id), duration);
       }
     },
     [removeToast]
   );
 
-  const success = useCallback(
-    (title, message) => toast(title, { type: 'success', message }),
-    [toast]
-  );
-  const error = useCallback(
-    (title, message) => toast(title, { type: 'error', message }),
-    [toast]
-  );
-  const info = useCallback(
-    (title, message) => toast(title, { type: 'info', message }),
-    [toast]
-  );
-  const warning = useCallback(
-    (title, message) => toast(title, { type: 'warning', message }),
-    [toast]
-  );
+  const success = useCallback((title, message) => toast(title, { type: 'success', message }), [toast]);
+  const error = useCallback((title, message) => toast(title, { type: 'error', message }), [toast]);
+  const info = useCallback((title, message) => toast(title, { type: 'info', message }), [toast]);
+  const warning = useCallback((title, message) => toast(title, { type: 'warning', message }), [toast]);
+
+  const accents = {
+    success: { icon: CheckCircle2, color: 'var(--success)' },
+    error: { icon: AlertCircle, color: 'var(--error)' },
+    warning: { icon: AlertTriangle, color: 'var(--warning)' },
+    info: { icon: Info, color: 'var(--info)' },
+  };
 
   return (
     <ToastContext.Provider value={{ toast, success, error, info, warning }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-md w-full px-4 pointer-events-none">
+      <div className="fixed bottom-4 right-4 z-[60] flex w-full max-w-sm flex-col gap-2 px-4 sm:px-0">
         {toasts.map((t) => {
-          const bgColors = {
-            success: 'bg-emerald-50 border-emerald-200 text-emerald-900',
-            error: 'bg-rose-50 border-rose-200 text-rose-900',
-            warning: 'bg-amber-50 border-amber-200 text-amber-900',
-            info: 'bg-indigo-50 border-indigo-200 text-indigo-900',
-          }[t.type];
-
-          const icons = {
-            success: <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />,
-            error: <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />,
-            warning: <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />,
-            info: <Info className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />,
-          }[t.type];
-
+          const { icon: Icon, color } = accents[t.type] || accents.info;
           return (
             <div
               key={t.id}
-              className={`pointer-events-auto flex items-start gap-3 p-3.5 rounded-xl border shadow-lg transition-all animate-in fade-in slide-in-from-bottom-2 ${bgColors}`}
+              role="status"
+              className="pointer-events-auto flex items-start gap-3 rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface)] p-3.5 shadow-[var(--shadow-menu)] animate-in fade-in slide-in-from-bottom-2 duration-200"
             >
-              {icons}
-              <div className="flex-1 text-sm">
-                <p className="font-semibold">{t.title}</p>
-                {t.message && <p className="mt-0.5 opacity-90 text-xs leading-relaxed">{t.message}</p>}
+              <span
+                className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                style={{ backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`, color }}
+              >
+                <Icon className="h-3.5 w-3.5" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-display text-[13px] font-semibold text-[var(--text-primary)]">{t.title}</p>
+                {t.message && (
+                  <p className="mt-0.5 text-xs leading-relaxed text-[var(--text-muted)]">{t.message}</p>
+                )}
               </div>
               <button
                 onClick={() => removeToast(t.id)}
-                className="text-slate-400 hover:text-slate-600 p-0.5 rounded-lg transition-colors"
+                className="rounded-md p-1 text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
                 aria-label="Close notification"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           );

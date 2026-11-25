@@ -331,17 +331,17 @@ export const CodeEditorPanel = ({ projectId, canEdit }) => {
             <button
               type="button"
               onClick={() => toggleFolder(nodePath)}
-              className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-slate-300 hover:bg-slate-800/60"
+              className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]"
               style={{
                 paddingLeft: `${8 + nodePath.split('/').length * 8}px`,
               }}
             >
               {isExpanded ? (
-                <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
+                <ChevronDown className="h-4 w-4 shrink-0 text-[var(--text-muted)]" />
               ) : (
-                <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+                <ChevronRight className="h-4 w-4 shrink-0 text-[var(--text-muted)]" />
               )}
-              <FolderOpen className="h-4 w-4 shrink-0 text-amber-400" />
+              <FolderOpen className="h-4 w-4 shrink-0 text-[var(--warning)]" />
               <span className="min-w-0 break-all">{name}</span>
             </button>
 
@@ -359,21 +359,21 @@ export const CodeEditorPanel = ({ projectId, canEdit }) => {
         <div
           key={file.id}
           className={`flex items-center gap-1 rounded-lg px-2 ${
-            isSelected ? 'bg-emerald-500/10 border border-emerald-500/30' : 'hover:bg-slate-800/60'
+            isSelected ? 'bg-[var(--accent)]/10 border border-[var(--accent)]/30' : 'hover:bg-[var(--surface-hover)]'
           }`}
         >
           <button
             type="button"
             onClick={() => void openFile(file)}
             className={`flex min-w-0 flex-1 items-start gap-2 rounded-lg px-1 py-2 text-left text-sm ${
-              isSelected ? 'text-emerald-400 font-semibold' : 'text-slate-300'
+              isSelected ? 'text-[var(--accent)] font-semibold' : 'text-[var(--text-secondary)]'
             }`}
             style={{
               paddingLeft: `${8 + nodePath.split('/').length * 8}px`,
             }}
             title={file.path}
           >
-            <Code2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+            <Code2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />
             <span className="min-w-0 break-all">{name}</span>
           </button>
 
@@ -384,7 +384,7 @@ export const CodeEditorPanel = ({ projectId, canEdit }) => {
                 title={`Rename ${file.path}`}
                 aria-label={`Rename ${file.path}`}
                 onClick={() => void handleRename(file)}
-                className="rounded p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                className="rounded p-1.5 text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
               >
                 <Pencil className="h-3.5 w-3.5" />
               </button>
@@ -394,7 +394,7 @@ export const CodeEditorPanel = ({ projectId, canEdit }) => {
                 title={`Delete ${file.path}`}
                 aria-label={`Delete ${file.path}`}
                 onClick={() => void handleDelete(file)}
-                className="rounded p-1.5 text-slate-400 hover:bg-slate-800 hover:text-rose-400"
+                className="rounded p-1.5 text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--error)]"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -432,9 +432,12 @@ export const CodeEditorPanel = ({ projectId, canEdit }) => {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-base font-bold text-white">Code Editor</h3>
-          <p className="mt-1 text-xs text-slate-400">
-            Edit project code files in the browser. Changes are saved explicitly.
+          <p className="sx-eyebrow">Editor</p>
+          <h3 className="mt-1 font-display text-[15px] font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
+            Project code
+          </h3>
+          <p className="mt-1 text-[12px] text-[var(--text-muted)]">
+            Edit project files in the browser. Changes are saved explicitly.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -450,7 +453,7 @@ export const CodeEditorPanel = ({ projectId, canEdit }) => {
             </Button>
           )}
           <Button size="sm" variant="outline" onClick={handleRun} disabled={!selectedFile || running}
-            leftIcon={running ? <Loader2 className="h-4 w-4 animate-spin text-emerald-400" /> : <Play className="h-4 w-4" />}>
+            leftIcon={running ? <Loader2 className="h-4 w-4 animate-spin text-[var(--accent)]" /> : <Play className="h-4 w-4" />}>
             {running ? 'Running…' : 'Run'}
           </Button>
           <Button size="sm" onClick={() => void handleSave()} disabled={!canEdit || !selectedFile || !dirty || saving || conflict}
@@ -461,23 +464,23 @@ export const CodeEditorPanel = ({ projectId, canEdit }) => {
       </div>
 
       {conflict && (
-        <div className="rounded-xl border border-amber-800/60 bg-amber-950/40 px-4 py-3 text-sm text-amber-300">
+        <div className="rounded-[10px] border border-[var(--warning)]/30 bg-[var(--warning-soft)] px-4 py-3 text-sm text-[var(--warning)]">
           The server has a newer version of this file. Reload it before making further saves.
-          <button type="button" onClick={() => void refreshSelected()} className="ml-2 font-semibold underline text-amber-200">
+          <button type="button" onClick={() => void refreshSelected()} className="ml-2 font-semibold underline text-[var(--warning)]">
             Reload file
           </button>
         </div>
       )}
 
       <div className="grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-[250px_minmax(0,1fr)]">
-        <aside className="min-w-0 overflow-hidden rounded-xl border border-slate-800 bg-[#0d131c]">
-          <div className="flex items-center gap-2 border-b border-slate-800 px-3 py-3 text-xs font-bold uppercase tracking-wide text-slate-400">
-            <FolderOpen className="h-4 w-4 text-emerald-400" /> Files ({files.length})
+        <aside className="min-w-0 overflow-hidden rounded-[10px] border border-[var(--border-subtle)] bg-[var(--surface)]">
+          <div className="flex items-center gap-2 border-b border-[var(--border-subtle)] px-3 py-3 text-xs font-bold uppercase tracking-wide text-[var(--text-muted)]">
+            <FolderOpen className="h-4 w-4 text-[var(--accent)]" /> Files ({files.length})
           </div>
           {loading ? (
-            <div className="flex items-center gap-2 p-4 text-sm text-slate-400"><Loader2 className="h-4 w-4 animate-spin text-emerald-400" /> Loading files…</div>
+            <div className="flex items-center gap-2 p-4 text-sm text-[var(--text-muted)]"><Loader2 className="h-4 w-4 animate-spin text-[var(--accent)]" /> Loading files…</div>
           ) : files.length === 0 ? (
-            <p className="p-4 text-sm text-slate-500">No code files yet. {canEdit ? 'Create a file to begin.' : 'An editor can create files.'}</p>
+            <p className="p-4 text-sm text-[var(--text-muted)]">No code files yet. {canEdit ? 'Create a file to begin.' : 'An editor can create files.'}</p>
           ) : (
             <div className="max-h-[520px] overflow-y-auto p-2">
              {renderTree(fileTree)}
@@ -485,17 +488,17 @@ export const CodeEditorPanel = ({ projectId, canEdit }) => {
           )}
         </aside>
 
-        <section className="min-w-0 overflow-hidden rounded-xl border border-slate-800 bg-[#0d131c]">
-          <div className="flex min-h-12 items-center justify-between gap-3 border-b border-slate-800 px-4 py-3 bg-[#0a0f16]">
-            <div className="min-w-0 truncate text-sm font-semibold text-slate-200">
+        <section className="min-w-0 overflow-hidden rounded-[10px] border border-[var(--border-subtle)] bg-[var(--surface)]">
+          <div className="flex min-h-12 items-center justify-between gap-3 border-b border-[var(--border-subtle)] px-4 py-3 bg-[var(--surface-raised)]">
+            <div className="min-w-0 truncate text-sm font-semibold text-[var(--text-primary)]">
               {selectedFile?.path || 'Select a file'}
-              {dirty && <span className="ml-2 text-amber-400">● Unsaved</span>}
+              {dirty && <span className="ml-2 text-[var(--warning)]">● Unsaved</span>}
             </div>
-            {selectedFile && <span className="shrink-0 text-[11px] text-slate-400">{canEdit ? 'Editable' : 'Read only'}</span>}
+            {selectedFile && <span className="shrink-0 text-[11px] text-[var(--text-muted)]">{canEdit ? 'Editable' : 'Read only'}</span>}
           </div>
           {selectedFile ? (
             <div className="relative">
-              {opening && <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#070b10]/80"><Loader2 className="h-6 w-6 animate-spin text-emerald-400" /></div>}
+              {opening && <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--surface-inset)]/80"><Loader2 className="h-6 w-6 animate-spin text-[var(--accent)]" /></div>}
               <Editor
                 height="62vh"
                 language={language}
@@ -515,19 +518,19 @@ export const CodeEditorPanel = ({ projectId, canEdit }) => {
             </div>
           ) : (
             <div className="flex min-h-[360px] flex-col items-center justify-center px-6 text-center">
-              <Code2 className="mb-3 h-8 w-8 text-emerald-400" />
-              <p className="text-sm font-semibold text-slate-200">Choose a code file</p>
-              <p className="mt-1 max-w-sm text-xs leading-5 text-slate-400">Select a file from the explorer or create a new one to start editing.</p>
+              <Code2 className="mb-3 h-8 w-8 text-[var(--accent)]" />
+              <p className="text-sm font-semibold text-[var(--text-primary)]">Choose a code file</p>
+              <p className="mt-1 max-w-sm text-xs leading-5 text-[var(--text-muted)]">Select a file from the explorer or create a new one to start editing.</p>
             </div>
           )}
         </section>
       </div>
-      <section className="overflow-hidden rounded-xl border border-slate-800 bg-[#080d14] text-slate-100">
-        <div className="flex items-center gap-2 border-b border-slate-800 px-4 py-2.5 text-xs font-semibold text-slate-300">
-          <Terminal className="h-4 w-4 text-emerald-400" /> Run output
-          <button type="button" className="ml-auto text-slate-400 hover:text-white" onClick={() => setRunOutput([])}>Clear</button>
+      <section className="overflow-hidden rounded-[10px] border border-[var(--border-subtle)] bg-[var(--surface-inset)] text-[var(--text-primary)]">
+        <div className="flex items-center gap-2 border-b border-[var(--border-subtle)] px-4 py-2.5 text-xs font-semibold text-[var(--text-secondary)]">
+          <Terminal className="h-4 w-4 text-[var(--accent)]" /> Run output
+          <button type="button" className="ml-auto text-[var(--text-muted)] hover:text-[var(--text-primary)]" onClick={() => setRunOutput([])}>Clear</button>
         </div>
-        <pre className="max-h-48 min-h-16 overflow-auto whitespace-pre-wrap break-words p-4 font-mono text-xs text-slate-300">{runOutput.length ? runOutput.join('\n') : 'Run a JavaScript (.js) file to see console output here.'}</pre>
+        <pre className="max-h-48 min-h-16 overflow-auto whitespace-pre-wrap break-words p-4 font-mono text-xs text-[var(--text-secondary)]">{runOutput.length ? runOutput.join('\n') : 'Run a JavaScript (.js) file to see console output here.'}</pre>
       </section>
     </div>
       );

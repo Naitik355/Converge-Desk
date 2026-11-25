@@ -1,41 +1,40 @@
-import React, { useState, useEffect } from "react";
-import { Calendar, Copy, Play, Video, Users } from "lucide-react";
-import { Button } from "../components/common/Button";
-import { Card } from "../components/common/Card";
-import { Modal } from "../components/common/Modal";
-import { Input } from "../components/common/Input";
-import { useToast } from "../context/ToastContext";
-import { useMeeting } from "../context/MeetingContext";
-import { listProjects, getProjectMembers } from "../api/projects";
-import {
-  getProjectMeetings,
-  createProjectMeeting,
-  inviteMeetingMembers,
-} from "../api/meetings";
+import React, { useState, useEffect } from 'react';
+import { Calendar, Copy, Play, Video, Users, Radio, Plus, MonitorUp } from 'lucide-react';
+import { Button } from '../components/common/Button';
+import { Modal } from '../components/common/Modal';
+import { Input } from '../components/common/Input';
+import { Select } from '../components/common/Select';
+import { PageHeader } from '../components/common/PageHeader';
+import { Panel } from '../components/common/Card';
+import { useToast } from '../context/ToastContext';
+import { useMeeting } from '../context/MeetingContext';
+import { listProjects, getProjectMembers } from '../api/projects';
+import { getProjectMeetings, createProjectMeeting, inviteMeetingMembers } from '../api/meetings';
+
 export const MeetingsPage = () => {
   const { startMeeting, meeting, expandMeeting } = useMeeting();
   const { success, info, error } = useToast();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newMeetingTitle, setNewMeetingTitle] = useState("");
-  const [newRoomName, setNewRoomName] = useState("");
+  const [newMeetingTitle, setNewMeetingTitle] = useState('');
+  const [newRoomName, setNewRoomName] = useState('');
   const [meetings, setMeetings] = useState([
     {
-      id: "meet-1",
-      title: "ConvergeDesk Sprint Kickoff",
-      roomName: "convergedesk-sprint-kickoff",
-      time: "Team room",
-      attendees: "Anyone with room code",
+      id: 'meet-1',
+      title: 'Sprint kickoff',
+      roomName: 'convergedesk-sprint-kickoff',
+      time: 'Team room',
+      attendees: 'Anyone with the room code',
     },
     {
-      id: "meet-2",
-      title: "Whiteboard Architecture Review",
-      roomName: "convergedesk-whiteboard-review",
-      time: "Team room",
-      attendees: "Anyone with room code",
+      id: 'meet-2',
+      title: 'Architecture review',
+      roomName: 'convergedesk-whiteboard-review',
+      time: 'Team room',
+      attendees: 'Anyone with the room code',
     },
   ]);
   const [projects, setProjects] = useState([]);
-  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [selectedProjectId, setSelectedProjectId] = useState('');
   const [members, setMembers] = useState([]);
   const [selectedMemberIds, setSelectedMemberIds] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,15 +44,11 @@ export const MeetingsPage = () => {
       try {
         const data = await listProjects();
         setProjects(data);
-
-        if (data.length > 0) {
-          setSelectedProjectId(String(data[0].id));
-        }
-      } catch (err) {
-        error("Could not load projects", "Please try again.");
+        if (data.length > 0) setSelectedProjectId(String(data[0].id));
+      } catch {
+        error('Could not load projects', 'Please try again.');
       }
     };
-
     loadProjects();
   }, []);
 
@@ -70,17 +65,16 @@ export const MeetingsPage = () => {
           getProjectMembers(selectedProjectId),
           getProjectMeetings(selectedProjectId),
         ]);
-
         setMembers(projectMembers);
         setMeetings(
           projectMeetings.map((item) => ({
             ...item,
-            time: "Project meeting",
-            attendees: "Invited project members",
-          })),
+            time: 'Project meeting',
+            attendees: 'Invited project members',
+          }))
         );
-      } catch (err) {
-        error("Could not load project meetings", "Please try again.");
+      } catch {
+        error('Could not load project meetings', 'Please try again.');
       }
     };
 
@@ -89,68 +83,51 @@ export const MeetingsPage = () => {
 
   const createAndJoin = (title, roomName) => {
     startMeeting(title, roomName);
-    info(
-      "Joining meeting",
-      "Allow camera and microphone access when your browser asks.",
-    );
+    info('Joining meeting', 'Allow camera and microphone access when your browser asks.');
   };
 
   const handleCreateMeeting = async (e) => {
     e.preventDefault();
 
     if (!newMeetingTitle.trim()) {
-      error("Meeting title required", "Enter a title for the meeting.");
+      error('Meeting title required', 'Enter a title for the meeting.');
       return;
     }
-
     if (!selectedProjectId) {
-      error("Project required", "Select a project for this meeting.");
+      error('Project required', 'Select a project for this meeting.');
       return;
     }
 
     setIsLoading(true);
-
     try {
-      // Create and save the meeting for the selected project.
-      const created = await createProjectMeeting(
-        selectedProjectId,
-        newMeetingTitle.trim(),
-      );
+      const created = await createProjectMeeting(selectedProjectId, newMeetingTitle.trim());
 
-      // Invite the selected members.
       if (selectedMemberIds.length > 0) {
         await inviteMeetingMembers(
           selectedProjectId,
           created.id,
-          selectedMemberIds.map(Number),
+          selectedMemberIds.map(Number)
         );
       }
 
-      const roomName = created.roomName;
-
-      // Keep the existing LiveKit meeting flow.
-      setNewMeetingTitle("");
-      setNewRoomName("");
+      setNewMeetingTitle('');
+      setNewRoomName('');
       setSelectedMemberIds([]);
       setIsCreateModalOpen(false);
 
-      success("Meeting created", "Your project meeting is ready.");
-      createAndJoin(created.title, roomName);
+      success('Meeting created', 'Your project meeting is ready.');
+      createAndJoin(created.title, created.roomName);
 
-      // Refresh the selected project's meeting list.
       const updatedMeetings = await getProjectMeetings(selectedProjectId);
       setMeetings(
         updatedMeetings.map((item) => ({
           ...item,
-          time: "Project meeting",
-          attendees: "Invited project members",
-        })),
+          time: 'Project meeting',
+          attendees: 'Invited project members',
+        }))
       );
     } catch (err) {
-      error(
-        "Could not create meeting",
-        err?.message || "Please check your connection and try again.",
-      );
+      error('Could not create meeting', err?.message || 'Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -159,210 +136,244 @@ export const MeetingsPage = () => {
   const copyRoom = async (roomName) => {
     try {
       await navigator.clipboard.writeText(roomName);
-      success("Room code copied", roomName);
+      success('Room code copied', roomName);
     } catch {
-      error(
-        "Could not copy room code",
-        "Select and copy the room code manually.",
-      );
+      error('Could not copy room code', 'Select and copy the room code manually.');
     }
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 p-4 md:p-8">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-white">
-            Meetings & Collaboration Calls
-          </h2>
-          <p className="mt-1 text-sm text-slate-400">
-            Meet face-to-face, then keep the call open while working on code,
-            boards, and tasks.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsCreateModalOpen(true)}
-            leftIcon={<Calendar className="h-4 w-4" />}
-          >
-            Create room
-          </Button>
-          <Button
-            size="sm"
-            onClick={() =>
-              createAndJoin(
-                "Instant Team Huddle",
-                `convergedesk-huddle-${Date.now()}`,
-              )
-            }
-            leftIcon={<Video className="h-4 w-4" />}
-          >
-            Start instant meeting
-          </Button>
-        </div>
-      </div>
+    <div className="mx-auto w-full max-w-[1440px] space-y-6 p-5 text-[var(--text-primary)] md:p-8">
+      <PageHeader
+        eyebrow="Team"
+        title="Meetings"
+        description="Talk it through, then keep the room open while you write, draw and build together."
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsCreateModalOpen(true)}
+              leftIcon={<Calendar className="h-3.5 w-3.5" />}
+            >
+              Create room
+            </Button>
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() =>
+                createAndJoin('Instant team huddle', `convergedesk-huddle-${Date.now()}`)
+              }
+              leftIcon={<Video className="h-3.5 w-3.5" />}
+            >
+              Start instant meeting
+            </Button>
+          </>
+        }
+      />
 
       {meeting && (
-        <div className="flex flex-col justify-between gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 p-4 sm:flex-row sm:items-center">
-          <div>
-            <p className="text-sm font-semibold text-emerald-400">
-              You're in a meeting: {meeting.title}
-            </p>
-            <p className="mt-1 text-xs text-slate-300">
-              Room code: <span className="font-mono text-emerald-300">{meeting.roomName}</span>
-            </p>
+        <div className="flex flex-col justify-between gap-3 rounded-[var(--radius-card)] border border-[var(--success)]/25 bg-[var(--success-soft)] p-4 sm:flex-row sm:items-center">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--success)] text-white">
+              <Radio className="h-4 w-4" />
+            </span>
+            <div>
+              <p className="font-display text-[13px] font-semibold text-[var(--text-primary)]">
+                In a meeting · {meeting.title}
+              </p>
+              <p className="mt-0.5 font-mono text-[10.5px] text-[var(--text-muted)]">
+                {meeting.roomName}
+              </p>
+            </div>
           </div>
           <div className="flex gap-2">
             <Button
               size="sm"
-              variant="outline"
+              variant="secondary"
               onClick={() => copyRoom(meeting.roomName)}
               leftIcon={<Copy className="h-3.5 w-3.5" />}
             >
-              Copy room code
+              Copy code
             </Button>
-            <Button size="sm" onClick={expandMeeting}>
+            <Button size="sm" variant="primary" onClick={expandMeeting}>
               Open meeting
             </Button>
           </div>
         </div>
       )}
 
-      <section className="space-y-4">
-        <div>
-          <h3 className="font-display text-base font-bold text-[var(--text-primary)]">Team Collaboration Rooms</h3>
-          <p className="mt-1 text-xs font-mono text-[var(--text-muted)]">
-            // Dedicated team channels with low-latency audio, video, and screen sharing.
-          </p>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+        <div className="xl:col-span-8">
+          <Panel
+            eyebrow="Rooms"
+            title="Collaboration rooms"
+            description="Dedicated channels with audio, video and screen sharing."
+            bodyClassName="p-4"
+          >
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {meetings.length === 0 ? (
+                <div className="col-span-full rounded-[10px] border border-dashed border-[var(--border-strong)] bg-[var(--surface-inset)] px-4 py-10 text-center md:col-span-2">
+                  <Video className="mx-auto mb-2 h-5 w-5 text-[var(--text-muted)]" />
+                  <p className="font-display text-[13px] font-semibold">No rooms in this project</p>
+                  <p className="mt-1 text-[11.5px] text-[var(--text-muted)]">
+                    Create a room and invite the project members.
+                  </p>
+                </div>
+              ) : (
+                meetings.map((item) => (
+                  <article
+                    key={item.id}
+                    className="flex flex-col justify-between rounded-[10px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-4 transition-colors hover:border-[var(--border-strong)]"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[var(--accent-soft)] text-[var(--accent)]">
+                          <Video className="h-4 w-4" />
+                        </span>
+                        <span className="rounded-full border border-[var(--border-subtle)] bg-[var(--surface)] px-2 py-0.5 text-[9.5px] font-semibold text-[var(--text-muted)]">
+                          {item.time}
+                        </span>
+                      </div>
+                      <h3 className="mt-3 font-display text-[13px] font-semibold leading-snug">
+                        {item.title}
+                      </h3>
+                      <p className="mt-1.5 flex items-center gap-1.5 text-[10.5px] text-[var(--text-muted)]">
+                        <Users className="h-3 w-3" /> {item.attendees}
+                      </p>
+                      <p className="mt-2.5 truncate rounded-[5px] border border-[var(--border-subtle)] bg-[var(--surface)] px-2 py-1 font-mono text-[10px] text-[var(--text-muted)]">
+                        {item.roomName}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 flex gap-1.5">
+                      <Button
+                        size="sm"
+                        variant="accent"
+                        onClick={() => createAndJoin(item.title, item.roomName)}
+                        leftIcon={<Play className="h-3 w-3" />}
+                        className="flex-1"
+                      >
+                        Join room
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => copyRoom(item.roomName)}
+                        className="!px-2.5"
+                        aria-label="Copy room code"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+          </Panel>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {meetings.map((item) => (
-            <Card
-              key={item.id}
-              hoverable
-              className="flex items-center justify-between gap-4 p-5"
+
+        <aside className="space-y-4 xl:col-span-4">
+          <Panel eyebrow="Project" title="In the room" bodyClassName="p-4">
+            <label className="mb-1.5 block font-display text-xs font-semibold text-[var(--text-secondary)]">
+              Project
+            </label>
+            <select
+              value={selectedProjectId}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              className="h-10 w-full cursor-pointer rounded-[var(--radius-control)] border border-[var(--border-subtle)] bg-[var(--surface)] px-3 text-[12px] text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none"
             >
-              <div className="min-w-0 space-y-2">
-                <h4 className="truncate font-display text-sm font-bold text-[var(--text-primary)]">
-                  {item.title}
-                </h4>
-                <div className="flex items-center gap-2 text-xs font-mono text-[var(--text-muted)]">
-                  <Users className="h-3.5 w-3.5 text-[var(--signal-teal)]" />
-                  {item.attendees}
-                </div>
-                <div className="flex items-center gap-2 text-xs font-mono text-[var(--text-muted)]">
-                  <Calendar className="h-3.5 w-3.5 text-[var(--signal-teal)]" />
-                  {item.time}
-                </div>
-                <p className="break-all font-mono text-xs text-[var(--text-muted)] bg-[var(--surface-raised)] px-2 py-0.5 rounded-[var(--btn-radius)] border border-[var(--border-subtle)] inline-block">
-                  {item.roomName}
-                </p>
-              </div>
-              <div className="flex shrink-0 flex-col gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => createAndJoin(item.title, item.roomName)}
-                  leftIcon={<Play className="h-3.5 w-3.5" />}
-                  className="bg-[var(--signal-teal)] text-black font-bold"
-                >
-                  Join
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => copyRoom(item.roomName)}
-                  leftIcon={<Copy className="h-3.5 w-3.5" />}
-                >
-                  Copy code
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
-      </section>
+              {projects.length === 0 && <option value="">No projects</option>}
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
 
-      {/* Conference System & Media Capabilities */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="glass-card p-4 flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--btn-radius)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--signal-teal)] flex items-center justify-center shrink-0">
-            <Video className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="font-display text-xs font-bold text-[var(--text-primary)]">HD Video & Low Latency</h4>
-            <p className="text-[11px] font-mono text-[var(--text-muted)]">Encrypted WebRTC peer mesh with adaptive bitrate</p>
-          </div>
-        </div>
+            <p className="sx-eyebrow mt-4">Members · {members.length}</p>
+            <div className="mt-2 space-y-1">
+              {members.length === 0 ? (
+                <p className="text-[11.5px] text-[var(--text-muted)]">No members loaded.</p>
+              ) : (
+                members.slice(0, 6).map((member) => {
+                  const id = member.user_id ?? member.id;
+                  const name = member.username || member.email || `Member ${id}`;
+                  return (
+                    <div key={id} className="flex items-center gap-2 rounded-[7px] px-1 py-1.5">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent-soft)] font-display text-[9px] font-bold text-[var(--accent)]">
+                        {name[0]?.toUpperCase()}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-[11.5px] font-medium text-[var(--text-primary)]">
+                          {name}
+                        </p>
+                        <p className="text-[9.5px] capitalize text-[var(--text-muted)]">
+                          {member.role || 'member'}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </Panel>
 
-        <div className="glass-card p-4 flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--btn-radius)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--signal-azure)] flex items-center justify-center shrink-0">
-            <Users className="w-5 h-5" />
+          <div className="rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-4">
+            <p className="sx-eyebrow">Good to know</p>
+            <ul className="mt-2.5 space-y-2.5 text-[11.5px] leading-relaxed text-[var(--text-muted)]">
+              <li className="flex gap-2">
+                <MonitorUp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--accent)]" />
+                Share your screen and keep the meeting pinned while you work.
+              </li>
+              <li className="flex gap-2">
+                <Users className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--accent)]" />
+                Anyone with the room code can join from their own workspace.
+              </li>
+            </ul>
           </div>
-          <div>
-            <h4 className="font-display text-xs font-bold text-[var(--text-primary)]">Instant Team Collaboration</h4>
-            <p className="text-[11px] font-mono text-[var(--text-muted)]">Integrated whiteboard, documents, and workspace sync</p>
-          </div>
-        </div>
-
-        <div className="glass-card p-4 flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--btn-radius)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--signal-amber)] flex items-center justify-center shrink-0">
-            <Calendar className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="font-display text-xs font-bold text-[var(--text-primary)]">Project Room Persistence</h4>
-            <p className="text-[11px] font-mono text-[var(--text-muted)]">Shareable room codes saved per project milestone</p>
-          </div>
-        </div>
+        </aside>
       </div>
 
       <Modal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        title="Create team meeting"
-        description="Choose a title and optional room code. Share the room code with your teammates."
+        eyebrow="New room"
+        title="Create a team meeting"
+        description="Pick a project, name the topic and invite the members who need to be there."
         footer={
           <>
             <Button variant="ghost" onClick={() => setIsCreateModalOpen(false)}>
               Cancel
             </Button>
             <Button
-              onClick={() =>
-                document.getElementById("create-meeting-form")?.requestSubmit()
-              }
+              onClick={() => document.getElementById('create-meeting-form')?.requestSubmit()}
               disabled={isLoading}
+              isLoading={isLoading}
             >
-              {isLoading ? "Creating..." : "Create & join"}
+              Create & join
             </Button>
           </>
         }
       >
-        <form
-          id="create-meeting-form"
-          onSubmit={handleCreateMeeting}
-          className="space-y-4"
-        >
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-300">
-              Project
-            </label>
-            <select
-              value={selectedProjectId}
-              onChange={(e) => {
-                setSelectedProjectId(e.target.value);
-                setSelectedMemberIds([]);
-              }}
-              className="w-full bg-[#080d14] text-slate-100 border border-slate-800 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              required
-            >
-              <option value="" className="bg-[#0b1017]">Select a project</option>
-              {projects.map((project) => (
-                <option key={project.id} value={String(project.id)} className="bg-[#0b1017]">
-                  {project.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        <form id="create-meeting-form" onSubmit={handleCreateMeeting} className="space-y-4">
+          <Select
+            label="Project"
+            value={selectedProjectId}
+            onChange={(e) => {
+              setSelectedProjectId(e.target.value);
+              setSelectedMemberIds([]);
+            }}
+            required
+          >
+            <option value="">Select a project</option>
+            {projects.map((project) => (
+              <option key={project.id} value={String(project.id)}>
+                {project.name}
+              </option>
+            ))}
+          </Select>
+
           <Input
             label="Meeting topic"
             placeholder="e.g. Sprint retrospective"
@@ -371,50 +382,46 @@ export const MeetingsPage = () => {
             autoFocus
             required
           />
-          <div>
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-300">
-              Invite project members
-            </label>
 
+          <div>
+            <p className="mb-1.5 font-display text-xs font-semibold text-[var(--text-secondary)]">
+              Invite project members
+            </p>
             {members.length === 0 ? (
-              <p className="text-xs text-slate-500 italic">
+              <p className="rounded-[8px] border border-dashed border-[var(--border-subtle)] px-3 py-3 text-[11.5px] text-[var(--text-muted)]">
                 No project members found.
               </p>
             ) : (
-              <div className="max-h-40 space-y-2 overflow-y-auto rounded-xl border border-slate-800 bg-[#080d14] p-3 text-slate-300">
+              <div className="max-h-40 space-y-1 overflow-y-auto rounded-[8px] border border-[var(--border-subtle)] bg-[var(--surface-inset)] p-2">
                 {members.map((member) => {
-                  const memberId = String(
-                    member.user_id ?? member.user?.id ?? member.id,
-                  );
+                  const memberId = String(member.user_id ?? member.user?.id ?? member.id);
+                  const name =
+                    member.username ?? member.user?.username ?? member.email ?? memberId;
                   return (
                     <label
                       key={memberId}
-                      className="flex items-center gap-2 text-xs hover:text-white cursor-pointer"
+                      className="flex cursor-pointer items-center gap-2 rounded-[6px] px-2 py-1.5 text-[11.5px] text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface)]"
                     >
                       <input
                         type="checkbox"
                         checked={selectedMemberIds.includes(memberId)}
-                        className="rounded border-slate-700 bg-slate-800 text-emerald-500 focus:ring-emerald-500"
+                        className="h-3.5 w-3.5 rounded border-[var(--border-strong)] accent-[var(--accent)]"
                         onChange={(e) => {
                           setSelectedMemberIds((previous) =>
                             e.target.checked
                               ? [...previous, memberId]
-                              : previous.filter((id) => id !== memberId),
+                              : previous.filter((id) => id !== memberId)
                           );
                         }}
                       />
-                      <span>
-                        {member.username ??
-                          member.user?.username ??
-                          member.email ??
-                          memberId}
-                      </span>
+                      <span className="truncate">{name}</span>
                     </label>
                   );
                 })}
               </div>
             )}
           </div>
+
           <Input
             label="Room code (optional)"
             placeholder="e.g. team-sprint-planning"

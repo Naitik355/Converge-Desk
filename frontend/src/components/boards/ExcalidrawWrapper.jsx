@@ -5,10 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import { TldrawCollaborativeCanvas } from './TldrawCollaborativeCanvas';
 
 /** Whiteboard powered by tldraw's hosted demo sync for local testing only. */
-export const ExcalidrawWrapper = ({
-  board,
-  onOpenAiAssistant,
-}) => {
+export const ExcalidrawWrapper = ({ board, onOpenAiAssistant }) => {
   const [copied, setCopied] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const { success } = useToast();
@@ -19,51 +16,70 @@ export const ExcalidrawWrapper = ({
     try {
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
-      success('Invite Link Copied', 'Share this whiteboard URL with collaborators.');
+      success('Invite link copied', 'Share this whiteboard URL with collaborators.');
       window.setTimeout(() => setCopied(false), 2500);
     } catch {
-      success('Copy Failed', 'Your browser did not allow copying the invite link.');
+      success('Copy failed', 'Your browser did not allow copying the invite link.');
     }
   };
 
   return (
-    <div className={`flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl ${
-      isFullScreen ? 'fixed inset-0 z-50 rounded-none' : 'h-[calc(100vh-140px)] w-full'
-    }`}>
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-slate-900 text-white border-b border-slate-800 z-10 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-xs font-semibold text-emerald-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>Multiplayer Canvas</span>
-          </div>
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400">
-            <span>Board ID:</span>
-            <span className="font-mono text-slate-200 bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60 text-[11px]">
-              {board.id}
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {onOpenAiAssistant && (
-            <Button size="sm" variant="primary" onClick={() => onOpenAiAssistant?.(tldrawEditor)}
-              leftIcon={<Sparkles className="w-3.5 h-3.5 text-amber-300" />}>
-              Draw to Code
-            </Button>
-          )}
-          <Button size="sm" variant="secondary" onClick={handleCopyLink}
-            leftIcon={copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-            className="bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700">
-            {copied ? 'Copied' : 'Invite Link'}
-          </Button>
-          <button onClick={() => setIsFullScreen(!isFullScreen)}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-700 transition-colors"
-            title={isFullScreen ? 'Exit full screen' : 'Full screen canvas'}>
-            {isFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-          </button>
+    <div
+      className={`relative flex flex-col overflow-hidden bg-[var(--surface)] ${
+        isFullScreen
+          ? 'fixed inset-0 z-50'
+          : 'm-4 mt-0 flex-1 rounded-[var(--radius-card)] border border-[var(--border-subtle)] sm:m-5 sm:mt-0'
+      }`}
+    >
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center p-3">
+        <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface)]/95 px-3 py-1.5 shadow-[var(--shadow-sm)] backdrop-blur">
+          <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
+          <span className="font-display text-[10.5px] font-semibold text-[var(--text-secondary)]">
+            Multiplayer canvas
+          </span>
+          <span className="h-3 w-px bg-[var(--border-subtle)]" />
+          <span className="font-mono text-[10px] text-[var(--text-muted)]">{board.room_id}</span>
         </div>
       </div>
-      <div className="flex-1 w-full h-full relative bg-white overflow-hidden">
-        <TldrawCollaborativeCanvas roomId={tldrawRoomId} onEditorMount={setTldrawEditor}/>
+
+      <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5">
+        {onOpenAiAssistant && (
+          <Button
+            size="sm"
+            variant="primary"
+            onClick={() => onOpenAiAssistant?.(tldrawEditor)}
+            leftIcon={<Sparkles className="h-3.5 w-3.5" />}
+            className="shadow-[var(--shadow-sm)]"
+          >
+            <span className="hidden sm:inline">Draw to code</span>
+          </Button>
+        )}
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={handleCopyLink}
+          leftIcon={copied ? <Check className="h-3.5 w-3.5 text-[var(--success)]" /> : <Copy className="h-3.5 w-3.5" />}
+          className="shadow-[var(--shadow-sm)]"
+        >
+          <span className="hidden sm:inline">{copied ? 'Copied' : 'Invite'}</span>
+        </Button>
+        <button
+          onClick={() => setIsFullScreen(!isFullScreen)}
+          className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--text-muted)] shadow-[var(--shadow-sm)] transition-colors hover:text-[var(--text-primary)]"
+          title={isFullScreen ? 'Exit full screen' : 'Full screen canvas'}
+        >
+          {isFullScreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+        </button>
+      </div>
+
+      <div className="relative h-full w-full flex-1 overflow-hidden bg-white">
+        <TldrawCollaborativeCanvas roomId={tldrawRoomId} onEditorMount={setTldrawEditor} />
+      </div>
+
+      <div className="pointer-events-none absolute bottom-20 left-4 z-10 hidden sm:block">
+        <div className="rounded-full border border-[var(--border-subtle)] bg-[var(--surface)]/95 px-3 py-1.5 font-mono text-[10px] text-[var(--text-muted)] shadow-[var(--shadow-sm)] backdrop-blur">
+          Zoom, draw and move — changes sync live
+        </div>
       </div>
     </div>
   );

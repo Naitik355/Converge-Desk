@@ -9,13 +9,14 @@ export const EmptyState = ({
   actionLabel,
   onAction,
   actionIcon,
+  compact = false,
 }) => {
   const renderIcon = () => {
     if (!icon) return null;
     if (React.isValidElement(icon)) return icon;
     if (typeof icon === 'function' || (typeof icon === 'object' && icon !== null)) {
       const IconComponent = icon;
-      return <IconComponent className="w-7 h-7" />;
+      return <IconComponent className="w-5 h-5" />;
     }
     return null;
   };
@@ -31,18 +32,26 @@ export const EmptyState = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-10 text-center rounded-[var(--card-radius)] border border-dashed border-[var(--border-subtle)] bg-[var(--surface-raised)] my-4 shadow-sm font-mono">
-      <div className="w-14 h-14 rounded-[var(--card-radius)] bg-[var(--surface-canvas)] border border-[var(--border-subtle)] text-[var(--signal-teal)] flex items-center justify-center mb-4">
+    <div
+      className={`flex flex-col items-center justify-center text-center rounded-[var(--radius-card)] border border-dashed border-[var(--border-strong)] bg-[var(--surface-inset)] ${
+        compact ? 'p-6' : 'p-10 sm:p-12'
+      }`}
+    >
+      <div className="w-11 h-11 rounded-[12px] bg-[var(--surface)] border border-[var(--border-subtle)] text-[var(--accent)] flex items-center justify-center mb-4 shadow-[var(--shadow-xs)]">
         {renderIcon()}
       </div>
-      <h3 className="font-display text-base font-bold text-[var(--text-primary)] mb-1">{title}</h3>
-      <p className="text-xs text-[var(--text-muted)] max-w-sm mb-6 leading-relaxed">
-        {description}
-      </p>
+      <h3 className="font-display text-[15px] font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
+        {title}
+      </h3>
+      {description && (
+        <p className="mt-1.5 mb-5 max-w-sm text-[12.5px] leading-relaxed text-[var(--text-muted)]">
+          {description}
+        </p>
+      )}
       {action ? (
         action
       ) : actionLabel && onAction ? (
-        <Button onClick={onAction} leftIcon={renderActionIcon()} className="bg-[var(--signal-teal)] text-black font-bold">
+        <Button size="sm" variant="primary" onClick={onAction} leftIcon={renderActionIcon()}>
           {actionLabel}
         </Button>
       ) : null}

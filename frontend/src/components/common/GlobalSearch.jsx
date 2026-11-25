@@ -1,7 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, FolderKanban, CheckSquare, Presentation, Code2, Video, Settings, X, ArrowRight } from 'lucide-react';
+import {
+  Search,
+  FolderKanban,
+  CheckSquare,
+  Presentation,
+  Code2,
+  Video,
+  Settings,
+  FileText,
+  X,
+  ArrowRight,
+  Home,
+} from 'lucide-react';
 import { listProjects } from '../../api/projects';
+
+const QUICK_NAV = [
+  { label: 'Dashboard', path: '/', icon: Home },
+  { label: 'Projects', path: '/projects', icon: FolderKanban },
+  { label: 'Tasks', path: '/tasks', icon: CheckSquare },
+  { label: 'Documents', path: '/documents', icon: FileText },
+  { label: 'Whiteboards', path: '/whiteboards', icon: Presentation },
+  { label: 'Code workspace', path: '/code', icon: Code2 },
+  { label: 'Team & meetings', path: '/meetings', icon: Video },
+  { label: 'Settings', path: '/settings', icon: Settings },
+];
 
 export const GlobalSearch = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
@@ -22,9 +45,7 @@ export const GlobalSearch = ({ isOpen, onClose }) => {
         e.preventDefault();
         if (isOpen) onClose();
       }
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
+      if (e.key === 'Escape' && isOpen) onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -32,22 +53,13 @@ export const GlobalSearch = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const quickNavItems = [
-    { label: 'Dashboard', path: '/', icon: <FolderKanban className="w-4 h-4 text-emerald-400" /> },
-    { label: 'All Projects', path: '/projects', icon: <FolderKanban className="w-4 h-4 text-teal-400" /> },
-    { label: 'Task Management', path: '/tasks', icon: <CheckSquare className="w-4 h-4 text-emerald-400" /> },
-    { label: 'Multiplayer Whiteboards', path: '/whiteboards', icon: <Presentation className="w-4 h-4 text-amber-400" /> },
-    { label: 'Code Workspace (Yjs)', path: '/code', icon: <Code2 className="w-4 h-4 text-cyan-400" /> },
-    { label: 'Meetings & Calls', path: '/meetings', icon: <Video className="w-4 h-4 text-rose-400" /> },
-  ];
-
   const filteredProjects = projects.filter(
     (p) =>
       p.name.toLowerCase().includes(query.toLowerCase()) ||
       (p.description && p.description.toLowerCase().includes(query.toLowerCase()))
   );
 
-  const filteredNav = quickNavItems.filter((item) =>
+  const filteredNav = QUICK_NAV.filter((item) =>
     item.label.toLowerCase().includes(query.toLowerCase())
   );
 
@@ -57,91 +69,93 @@ export const GlobalSearch = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-[55] overflow-y-auto">
       <div
-        className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity animate-in fade-in duration-150"
+        className="fixed inset-0 bg-[#0a0b0d]/55 backdrop-blur-[2px] animate-in fade-in duration-150"
         onClick={onClose}
       />
-      <div className="flex min-h-full items-start justify-center p-4 pt-16 sm:p-6 sm:pt-24 font-mono">
-        <div className="relative w-full max-w-xl rounded-[var(--card-radius)] bg-[var(--surface-card)] shadow-2xl border-2 border-[var(--border-subtle)] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-          {/* Search Input Bar */}
-          <div className="flex items-center px-4 border-b border-[var(--border-subtle)] bg-[var(--surface-raised)]">
-            <Search className="w-5 h-5 text-[var(--signal-teal)] shrink-0" />
+      <div className="flex min-h-full items-start justify-center p-4 pt-[12vh] sm:p-6">
+        <div className="relative w-full max-w-xl overflow-hidden rounded-[var(--radius-panel)] border border-[var(--border-subtle)] bg-[var(--surface)] shadow-[var(--shadow-menu)] animate-in fade-in zoom-in-95 duration-150">
+          <div className="flex items-center gap-3 border-b border-[var(--border-subtle)] px-4">
+            <Search className="w-4 h-4 shrink-0 text-[var(--text-muted)]" />
             <input
               type="text"
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search projects, workspaces, or features..."
-              className="w-full bg-transparent px-3.5 py-4 text-xs sm:text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none"
+              placeholder="Search projects and workspace…"
+              className="w-full bg-transparent py-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none"
             />
             {query && (
               <button
                 onClick={() => setQuery('')}
-                className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-lg"
+                className="rounded-md p-1 text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
+                aria-label="Clear search"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
-            <kbd className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-semibold text-[var(--text-muted)] bg-[var(--surface-canvas)] rounded border border-[var(--border-subtle)]">
+            <kbd className="hidden shrink-0 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-inset)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-muted)] sm:block">
               ESC
             </kbd>
           </div>
 
-          {/* Results List */}
-          <div className="max-h-96 overflow-y-auto p-3 space-y-4">
-            {/* Quick Navigation */}
+          <div className="max-h-[420px] space-y-4 overflow-y-auto p-2.5">
             {filteredNav.length > 0 && (
               <div>
-                <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                  Navigation
-                </p>
-                <div className="space-y-0.5 mt-1">
-                  {filteredNav.map((item) => (
-                    <button
-                      key={item.path}
-                      onClick={() => handleSelect(item.path)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-xs sm:text-sm text-[var(--text-primary)] hover:bg-[var(--surface-raised)] rounded-[var(--btn-radius)] transition-colors text-left group"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        {item.icon}
-                        <span className="font-medium">{item.label}</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-[var(--signal-teal)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </button>
-                  ))}
+                <p className="sx-eyebrow px-2.5 py-1.5">Go to</p>
+                <div className="space-y-0.5">
+                  {filteredNav.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.path}
+                        onClick={() => handleSelect(item.path)}
+                        className="group flex w-full items-center justify-between rounded-[8px] px-2.5 py-2 text-left text-[13px] text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
+                      >
+                        <span className="flex items-center gap-2.5">
+                          <Icon className="h-4 w-4 text-[var(--text-muted)] group-hover:text-[var(--accent)]" />
+                          {item.label}
+                        </span>
+                        <ArrowRight className="h-3.5 w-3.5 text-[var(--accent)] opacity-0 transition-opacity group-hover:opacity-100" />
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {/* Projects List */}
             {projects.length > 0 && (
               <div>
-                <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                  Projects ({filteredProjects.length})
-                </p>
+                <p className="sx-eyebrow px-2.5 py-1.5">Projects · {filteredProjects.length}</p>
                 {filteredProjects.length === 0 ? (
-                  <p className="px-3 py-2 text-xs text-[var(--text-muted)] italic">No matching projects found</p>
+                  <p className="px-2.5 py-2 text-xs text-[var(--text-muted)]">
+                    No projects match “{query}”.
+                  </p>
                 ) : (
-                  <div className="space-y-0.5 mt-1">
+                  <div className="space-y-0.5">
                     {filteredProjects.map((project) => (
                       <button
                         key={project.id}
                         onClick={() => handleSelect(`/projects/${project.id}`)}
-                        className="w-full flex items-center justify-between px-3 py-2 text-xs sm:text-sm text-[var(--text-primary)] hover:bg-[var(--surface-raised)] rounded-[var(--btn-radius)] transition-colors text-left group"
+                        className="group flex w-full items-center justify-between gap-3 rounded-[8px] px-2.5 py-2 text-left transition-colors hover:bg-[var(--surface-hover)]"
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-7 h-7 rounded-[var(--btn-radius)] bg-[var(--surface-canvas)] border border-[var(--border-subtle)] text-[var(--signal-teal)] flex items-center justify-center font-bold text-xs shrink-0">
+                        <span className="flex min-w-0 items-center gap-2.5">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[7px] border border-[var(--border-subtle)] bg-[var(--surface-inset)] font-display text-[11px] font-bold text-[var(--accent)]">
                             {(project?.name?.[0] || 'P').toUpperCase()}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-medium text-[var(--text-primary)] group-hover:text-[var(--signal-teal)] transition-colors truncate">{project.name}</p>
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate text-[13px] font-medium text-[var(--text-primary)]">
+                              {project.name}
+                            </span>
                             {project.description && (
-                              <p className="text-xs text-[var(--text-muted)] truncate">{project.description}</p>
+                              <span className="block truncate text-[11.5px] text-[var(--text-muted)]">
+                                {project.description}
+                              </span>
                             )}
-                          </div>
-                        </div>
-                        <span className="text-xs px-2 py-0.5 rounded-[var(--btn-radius)] bg-[var(--surface-canvas)] text-[var(--text-muted)] border border-[var(--border-subtle)] capitalize shrink-0 ml-2">
+                          </span>
+                        </span>
+                        <span className="shrink-0 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-inset)] px-2 py-0.5 text-[10px] font-semibold capitalize text-[var(--text-muted)]">
                           {project.role || 'member'}
                         </span>
                       </button>
@@ -152,8 +166,9 @@ export const GlobalSearch = ({ isOpen, onClose }) => {
             )}
 
             {filteredNav.length === 0 && filteredProjects.length === 0 && (
-              <div className="p-8 text-center text-sm text-[var(--text-muted)]">
-                No matching results for "{query}"
+              <div className="px-3 py-10 text-center">
+                <p className="sx-title text-[var(--text-primary)]">No results</p>
+                <p className="mt-1 text-xs text-[var(--text-muted)]">Nothing matches “{query}”.</p>
               </div>
             )}
           </div>

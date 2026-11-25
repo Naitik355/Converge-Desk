@@ -4,8 +4,7 @@ import { getBoard } from '../api/boards';
 import { ExcalidrawWrapper } from '../components/boards/ExcalidrawWrapper';
 import { AiDrawingToCodePanel } from '../components/boards/AiDrawingToCodePanel';
 import { Button } from '../components/common/Button';
-import { ArrowLeft, Presentation, AlertCircle, RefreshCw } from 'lucide-react';
-import { editor } from 'monaco-editor';
+import { ArrowLeft, Shapes, AlertCircle, RefreshCw, Users } from 'lucide-react';
 
 export const BoardViewPage = () => {
   const { projectId, boardId } = useParams();
@@ -23,8 +22,7 @@ export const BoardViewPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await getBoard(bId);
-      setBoard(data);
+      setBoard(await getBoard(bId));
     } catch (err) {
       setError(
         err?.message ||
@@ -41,67 +39,75 @@ export const BoardViewPage = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-64px)] p-6 space-y-3">
-        <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin" />
-        <p className="text-sm font-medium text-slate-300">Connecting to whiteboard room...</p>
+      <div className="flex h-[calc(100vh-64px)] flex-col items-center justify-center gap-3 bg-[var(--canvas)]">
+        <RefreshCw className="h-6 w-6 animate-spin text-[var(--accent)]" />
+        <p className="text-[12.5px] text-[var(--text-muted)]">Connecting to the canvas room…</p>
       </div>
     );
   }
 
   if (error || !board) {
     return (
-      <div className="p-8 max-w-xl mx-auto text-center space-y-4 pt-16">
-        <div className="p-6 rounded-2xl bg-rose-950/40 border border-rose-800/60 text-rose-300">
-          <AlertCircle className="w-8 h-8 text-rose-400 mx-auto mb-2" />
-          <p className="font-semibold text-base mb-1 text-rose-200">Whiteboard Access Error</p>
-          <p className="text-xs text-rose-400">{error || 'Whiteboard could not be found.'}</p>
+      <div className="mx-auto max-w-xl space-y-4 p-8 pt-16 text-center">
+        <div className="rounded-[var(--radius-panel)] border border-[var(--error)]/30 bg-[var(--error-soft)] p-8">
+          <AlertCircle className="mx-auto mb-3 h-6 w-6 text-[var(--error)]" />
+          <p className="font-display text-[15px] font-semibold text-[var(--error)]">
+            Could not open this canvas
+          </p>
+          <p className="mt-1 text-[12px] text-[var(--text-muted)]">
+            {error || 'Whiteboard could not be found.'}
+          </p>
         </div>
         <Button
           variant="outline"
           onClick={() => navigate(pId ? `/projects/${pId}` : '/projects')}
-          leftIcon={<ArrowLeft className="w-4 h-4" />}
+          leftIcon={<ArrowLeft className="h-4 w-4" />}
         >
-          Return to Project
+          Return to project
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-4 max-w-[1700px] mx-auto text-[var(--text-primary)]">
-      {/* Top Header Bar */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+    <div className="flex h-[calc(100vh-64px)] flex-col bg-[var(--canvas)]">
+      <div className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-[var(--border-subtle)] bg-[var(--surface)] px-3 sm:px-5">
+        <div className="flex min-w-0 items-center gap-2.5">
           <button
             onClick={() => navigate(pId ? `/projects/${pId}` : '/projects')}
-            className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-raised)] rounded-[var(--btn-radius)] transition-colors border border-[var(--border-subtle)]"
-            title="Back to project workspace"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[7px] border border-[var(--border-subtle)] text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
+            title="Back to project"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="h-4 w-4" />
           </button>
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-[var(--btn-radius)] bg-[var(--surface-raised)] border border-[var(--border-subtle)] text-[var(--signal-amber)] flex items-center justify-center">
-              <Presentation className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="font-display text-base font-bold text-[var(--text-primary)] leading-tight">
-                {board.title}
-              </h2>
-              <p className="text-[11px] font-mono text-[var(--text-muted)]">
-                // Multiplayer Excalidraw Canvas
-              </p>
-            </div>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-[var(--accent-soft)] text-[var(--accent)]">
+            <Shapes className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <h1 className="truncate font-display text-[13px] font-semibold text-[var(--text-primary)]">
+              {board.title}
+            </h1>
+            <p className="truncate font-mono text-[10px] text-[var(--text-muted)]">
+              Canvas · {board.room_id}
+            </p>
           </div>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="hidden items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-raised)] px-2.5 py-1 text-[10.5px] text-[var(--text-muted)] sm:flex">
+            <Users className="h-3 w-3" /> Live room
+          </span>
         </div>
       </div>
 
-      {/* Main Canvas Component */}
       <ExcalidrawWrapper
         board={board}
-        onOpenAiAssistant={(editor)=>{setTldrawEditor(editor); setIsAiOpen(true)}}
+        onOpenAiAssistant={(editor) => {
+          setTldrawEditor(editor);
+          setIsAiOpen(true);
+        }}
       />
 
-      {/* AI Assistant Drawer */}
       <AiDrawingToCodePanel
         isOpen={isAiOpen}
         onClose={() => setIsAiOpen(false)}

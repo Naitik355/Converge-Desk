@@ -8,7 +8,15 @@ import { DeleteProjectDialog } from '../components/projects/DeleteProjectDialog'
 import { Button } from '../components/common/Button';
 import { EmptyState } from '../components/common/EmptyState';
 import { CardSkeleton } from '../components/common/LoadingSkeleton';
-import { FolderKanban, Plus, Search, RefreshCw, Filter, AlertCircle } from 'lucide-react';
+import { PageHeader } from '../components/common/PageHeader';
+import { FolderKanban, Plus, Search, RefreshCw, AlertCircle, X } from 'lucide-react';
+
+const ROLE_FILTERS = [
+  { value: 'all', label: 'All' },
+  { value: 'owner', label: 'Owned' },
+  { value: 'editor', label: 'Editing' },
+  { value: 'viewer', label: 'Viewing' },
+];
 
 export const ProjectsPage = () => {
   const [projects, setProjects] = useState([]);
@@ -27,8 +35,7 @@ export const ProjectsPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await listProjects();
-      setProjects(data);
+      setProjects(await listProjects());
     } catch (err) {
       setError(err?.message || 'Failed to load projects');
     } finally {
@@ -48,100 +55,137 @@ export const ProjectsPage = () => {
     return matchesSearch && matchesRole;
   });
 
-  return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 text-[var(--text-primary)]">
-      {/* Header and Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="font-display text-2xl font-bold text-[var(--text-primary)] tracking-tight">Projects</h2>
-          <p className="text-xs font-mono text-[var(--text-muted)] mt-0.5">
-            // Manage your collaborative workspaces, documents, tasks, and whiteboards
-          </p>
-        </div>
+  const counts = {
+    all: projects.length,
+    owner: projects.filter((p) => p.role === 'owner').length,
+    editor: projects.filter((p) => p.role === 'editor').length,
+    viewer: projects.filter((p) => p.role === 'viewer').length,
+  };
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchProjects}
-            leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />}
-            className="border-[var(--border-subtle)] bg-[var(--surface-raised)] text-[var(--text-primary)] hover:bg-[var(--surface-card)]"
-          >
-            Refresh
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => setIsCreateOpen(true)}
-            leftIcon={<Plus className="w-4 h-4" />}
-            className="bg-[var(--signal-teal)] text-black font-bold"
-          >
-            New Project
-          </Button>
-        </div>
-      </div>
+  return (
+    <div className="mx-auto w-full max-w-[1440px] p-5 md:p-8 space-y-6 text-[var(--text-primary)]">
+      <PageHeader
+        eyebrow="Workspace"
+        title="Projects"
+        description="Every shared workspace you belong to, with its tasks, documents, canvases and code in one place."
+        meta={
+          <>
+            <span className="rounded-full border border-[var(--border-subtle)] bg-[var(--surface)] px-2.5 py-1 text-[11px] text-[var(--text-muted)]">
+              {projects.length} {projects.length === 1 ? 'project' : 'projects'}
+            </span>
+            <span className="rounded-full border border-[var(--border-subtle)] bg-[var(--surface)] px-2.5 py-1 text-[11px] text-[var(--text-muted)]">
+              {counts.owner} owned
+            </span>
+          </>
+        }
+        actions={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={fetchProjects}
+              leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />}
+            >
+              Refresh
+            </Button>
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => setIsCreateOpen(true)}
+              leftIcon={<Plus className="w-3.5 h-3.5" />}
+            >
+              New project
+            </Button>
+          </>
+        }
+      />
 
       {error && (
-        <div className="flex items-start gap-3 p-4 rounded-[var(--card-radius)] bg-rose-950/40 border border-rose-800 text-rose-300 text-sm">
-          <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-          <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <span>{error}</span>
-            <Button size="sm" variant="outline" onClick={fetchProjects} className="border-rose-700 bg-rose-900/30 text-rose-200">
-              Try Again
+        <div className="flex items-start gap-3 rounded-[var(--radius-card)] border border-[var(--error)]/30 bg-[var(--error-soft)] p-4 text-[var(--error)]">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div className="flex flex-1 flex-col justify-between gap-2 sm:flex-row sm:items-center">
+            <span className="text-[12.5px]">{error}</span>
+            <Button size="sm" variant="outline" onClick={fetchProjects}>
+              Try again
             </Button>
           </div>
         </div>
       )}
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[var(--surface-raised)] p-3 rounded-[var(--card-radius)] border border-[var(--border-subtle)] shadow-sm">
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
+      {/* Toolbar */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative w-full lg:max-w-sm">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-muted)]" />
           <input
             type="text"
-            placeholder="Search projects by name or description..."
+            placeholder="Search projects…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full text-xs font-mono pl-9 pr-3 py-2 bg-[var(--surface-canvas)] border border-[var(--border-subtle)] rounded-[var(--btn-radius)] text-[var(--text-primary)] placeholder:[var(--text-muted)] focus:outline-none focus:border-[var(--signal-teal)] transition-colors"
+            className="h-10 w-full rounded-full border border-[var(--border-subtle)] bg-[var(--surface)] pl-9 pr-9 text-[12.5px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] transition-colors focus:border-[var(--accent)] focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-soft)]"
           />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+              aria-label="Clear search"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-[var(--text-muted)] shrink-0" />
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="text-xs font-mono py-2 px-3 bg-[var(--surface-canvas)] border border-[var(--border-subtle)] rounded-[var(--btn-radius)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--signal-teal)] cursor-pointer"
-          >
-            <option value="all">All Roles</option>
-            <option value="owner">Owner</option>
-            <option value="editor">Editor</option>
-            <option value="viewer">Viewer</option>
-          </select>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {ROLE_FILTERS.map((filter) => (
+            <button
+              key={filter.value}
+              onClick={() => setRoleFilter(filter.value)}
+              className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3 font-display text-[11.5px] font-semibold transition-colors cursor-pointer ${
+                roleFilter === filter.value
+                  ? 'border-[var(--ink)] bg-[var(--ink)] text-[var(--on-ink)]'
+                  : 'border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--text-muted)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              {filter.label}
+              <span
+                className={`text-[10px] ${
+                  roleFilter === filter.value ? 'opacity-70' : 'text-[var(--text-muted)]'
+                }`}
+              >
+                {counts[filter.value]}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Projects Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           <CardSkeleton />
           <CardSkeleton />
           <CardSkeleton />
         </div>
       ) : filteredProjects.length === 0 ? (
         <EmptyState
-          icon={<FolderKanban className="w-7 h-7 text-emerald-400" />}
-          title={search ? 'No matching projects' : 'No projects found'}
+          icon={<FolderKanban className="w-5 h-5" />}
+          title={search || roleFilter !== 'all' ? 'No matching projects' : 'No projects yet'}
           description={
-            search
-              ? `No projects matched "${search}". Try adjusting your search query.`
-              : 'Create your first project to start organizing tasks, collaborative documents, and multiplayer whiteboards.'
+            search || roleFilter !== 'all'
+              ? 'Try a different search or role filter.'
+              : 'Create your first project to connect tasks, documents, whiteboards and code.'
           }
-          actionLabel={search ? undefined : 'Create Project'}
-          actionIcon={<Plus className="w-4 h-4" />}
-          onAction={() => setIsCreateOpen(true)}
+          action={
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => setIsCreateOpen(true)}
+              leftIcon={<Plus className="w-3.5 h-3.5" />}
+            >
+              Create project
+            </Button>
+          }
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredProjects.map((project) => (
             <ProjectCard
               key={project.id}
@@ -153,7 +197,6 @@ export const ProjectsPage = () => {
         </div>
       )}
 
-      {/* Modals */}
       <CreateProjectModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
@@ -167,18 +210,14 @@ export const ProjectsPage = () => {
         isOpen={!!editingProject}
         onClose={() => setEditingProject(null)}
         project={editingProject}
-        onUpdated={() => {
-          fetchProjects();
-        }}
+        onUpdated={() => fetchProjects()}
       />
 
       <DeleteProjectDialog
         isOpen={!!deletingProject}
         onClose={() => setDeletingProject(null)}
         project={deletingProject}
-        onDeleted={() => {
-          fetchProjects();
-        }}
+        onDeleted={() => fetchProjects()}
       />
     </div>
   );

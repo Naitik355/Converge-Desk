@@ -7,7 +7,10 @@ export const Textarea = React.forwardRef(
     return (
       <div className="w-full space-y-1.5 text-left">
         {label && (
-          <label htmlFor={textareaId} className="block text-xs font-mono font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+          <label
+            htmlFor={textareaId}
+            className="block font-display text-xs font-semibold text-[var(--text-secondary)]"
+          >
             {label}
           </label>
         )}
@@ -15,17 +18,17 @@ export const Textarea = React.forwardRef(
           id={textareaId}
           ref={ref}
           rows={rows}
-          className={`w-full bg-[var(--surface-canvas)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] text-sm rounded-[var(--btn-radius)] border transition-all duration-150 p-3.5 font-mono ${
+          className={`w-full bg-[var(--surface)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] text-[13px] leading-relaxed rounded-[var(--radius-control)] border p-3 font-sans transition-all duration-150 focus:outline-none focus:border-[var(--accent)] focus:ring-[3px] focus:ring-[var(--accent-soft)] resize-y ${
             error
-              ? 'border-[var(--signal-coral)] focus:border-[var(--signal-coral)] focus:ring-1 focus:ring-[var(--signal-coral)]/30'
-              : 'border-[var(--border-subtle)] hover:border-[var(--text-muted)] focus:border-[var(--signal-teal)] focus:ring-1 focus:ring-[var(--signal-teal)]/30'
-          } focus:outline-none ${className}`}
+              ? 'border-[var(--error)]'
+              : 'border-[var(--border-subtle)] hover:border-[var(--border-strong)]'
+          } ${className}`}
           {...props}
         />
         {error ? (
-          <p className="text-xs font-mono text-[var(--signal-coral)] font-medium">{error}</p>
+          <p className="text-xs text-[var(--error)] font-medium">{error}</p>
         ) : helperText ? (
-          <p className="text-xs font-mono text-[var(--text-muted)]">{helperText}</p>
+          <p className="sx-caption">{helperText}</p>
         ) : null}
       </div>
     );

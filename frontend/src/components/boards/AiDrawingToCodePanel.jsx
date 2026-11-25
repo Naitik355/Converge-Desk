@@ -214,18 +214,18 @@ Analyze the attached drawing and generate the appropriate code.`,
       />
 
       {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 z-[99999] w-full sm:w-[540px] bg-[#0d131c] shadow-2xl border-l border-slate-800 flex flex-col animate-in slide-in-from-right duration-200">
+      <div className="fixed inset-y-0 right-0 z-[99999] w-full sm:w-[540px] bg-[var(--surface)] shadow-[var(--shadow-sm)] border-l border-[var(--border-subtle)] flex flex-col animate-in slide-in-from-right duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-[#0a0f16] shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border-subtle)] bg-[var(--surface-raised)] shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-xs">
+            <div className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[var(--accent)] text-white shadow-xs">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">
-                AI Drawing to Code
+              <h3 className="font-display text-[13px] font-semibold text-[var(--text-primary)]">
+                Drawing to code
               </h3>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-[var(--text-muted)]">
                 Transform whiteboard wireframes into code
               </p>
             </div>
@@ -233,14 +233,14 @@ Analyze the attached drawing and generate the appropriate code.`,
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setShowConfig(!showConfig)}
-              className="p-1.5 text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800/60 transition-colors"
+              className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-lg hover:bg-[var(--surface-hover)] transition-colors"
               title="AI Settings"
             >
               <Settings className="w-4 h-4" />
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800/60 transition-colors"
+              className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-lg hover:bg-[var(--surface-hover)] transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -251,16 +251,16 @@ Analyze the attached drawing and generate the appropriate code.`,
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Settings Drawer */}
           {showConfig && (
-            <div className="p-3.5 rounded-xl bg-[#080d14] border border-slate-800 space-y-2.5 text-xs text-slate-300">
+            <div className="p-3.5 rounded-[10px] bg-[var(--surface-inset)] border border-[var(--border-subtle)] space-y-2.5 text-xs text-[var(--text-secondary)]">
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-emerald-400">
+                <span className="font-semibold text-[var(--accent)]">
                   AI Engine Integration
                 </span>
-                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-medium">
+                <span className="text-[10px] bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20 px-2 py-0.5 rounded-full font-medium">
                   Gemini Vision
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
+              <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
                 Connect your Google Gemini API key to enable instant diagram-to-code synthesis.
               </p>
             <div className="flex gap-2">
@@ -269,7 +269,7 @@ Analyze the attached drawing and generate the appropriate code.`,
                 placeholder="Enter Gemini API Key..."
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                className="flex-1 px-3 py-1.5 bg-[#0b1017] border border-slate-800 text-slate-100 placeholder:text-slate-500 rounded-lg font-mono text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="flex-1 px-3 py-1.5 bg-[var(--surface)] border border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] rounded-lg font-mono text-xs focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
               />
               <Button size="sm" onClick={handleSaveApiKey}>
                 Save
@@ -281,7 +281,7 @@ Analyze the attached drawing and generate the appropriate code.`,
 
         {/* Target Options */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
             Output Target
           </label>
           <div className="grid grid-cols-3 gap-2">
@@ -299,10 +299,10 @@ Analyze the attached drawing and generate the appropriate code.`,
                 <button
                   key={t.id}
                   onClick={() => setTargetType(t.id)}
-                  className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-xs font-medium transition-all ${
+                  className={`flex flex-col items-center justify-center p-2.5 rounded-[10px] border text-xs font-medium transition-all ${
                     targetType === t.id
-                      ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-400 shadow-2xs font-semibold"
-                      : "bg-[#080d14] border-slate-800 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
+                      ? "bg-[var(--accent)]/10 border-[var(--accent)]/40 text-[var(--accent)] shadow-2xs font-semibold"
+                      : "bg-[var(--surface-inset)] border-[var(--border-subtle)] text-[var(--text-muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]"
                   }`}
                 >
                   <Icon className="w-4 h-4 mb-1" />
@@ -315,7 +315,7 @@ Analyze the attached drawing and generate the appropriate code.`,
 
         {/* Custom Instructions */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
             Prompt Instructions (Optional)
           </label>
           <textarea
@@ -323,7 +323,7 @@ Analyze the attached drawing and generate the appropriate code.`,
             value={customPrompt}
             onChange={(e) => setCustomPrompt(e.target.value)}
             placeholder="e.g. Include dark mode variants, interactive dropdown, and accessible keyboard focus..."
-            className="w-full text-xs p-3 bg-[#080d14] border border-slate-800 rounded-xl text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="w-full text-xs p-3 bg-[var(--surface-inset)] border border-[var(--border-subtle)] rounded-[10px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
           />
         </div>
 
@@ -341,16 +341,16 @@ Analyze the attached drawing and generate the appropriate code.`,
 
         {/* Error Alert */}
         {errorMessage && (
-          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-rose-950/40 border border-rose-800/60 text-rose-300 text-xs">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2.5 p-3 rounded-[10px] bg-[var(--error-soft)] border border-[var(--error)]/30 text-[var(--error)] text-xs">
+            <AlertCircle className="w-4 h-4 text-[var(--error)] shrink-0 mt-0.5" />
             <div className="space-y-1 flex-1">
-              <p className="font-semibold text-rose-200">Generation Notice</p>
-              <p className="text-[11px] leading-relaxed text-rose-300">
+              <p className="font-semibold text-[var(--error)]">Generation Notice</p>
+              <p className="text-[11px] leading-relaxed text-[var(--error)]">
                 {errorMessage}
               </p>
               <button
                 onClick={() => setShowConfig(true)}
-                className="mt-1 font-semibold text-rose-400 underline block hover:text-rose-300"
+                className="mt-1 font-semibold text-[var(--error)] underline block hover:text-[var(--error)]"
               >
                 Configure Gemini API Key in Settings
               </button>
@@ -360,11 +360,11 @@ Analyze the attached drawing and generate the appropriate code.`,
 
         {/* Output Code Container */}
         {generatedCode && (
-          <div className="border border-slate-800 rounded-2xl overflow-hidden shadow-xs mt-4">
-            <div className="flex items-center justify-between px-3 py-2 bg-[#090d14] text-slate-300 text-xs border-b border-slate-800">
+          <div className="border border-[var(--border-subtle)] rounded-[var(--radius-card)] overflow-hidden shadow-xs mt-4">
+            <div className="flex items-center justify-between px-3 py-2 bg-[var(--surface-inset)] text-[var(--text-secondary)] text-xs border-b border-[var(--border-subtle)]">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-emerald-400">Component.jsx</span>
-                <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">
+                <span className="font-mono text-[var(--accent)]">Component.jsx</span>
+                <span className="text-[10px] bg-[var(--surface-hover)] text-[var(--text-muted)] px-1.5 py-0.5 rounded">
                   {targetType}
                 </span>
               </div>
@@ -374,17 +374,17 @@ Analyze the attached drawing and generate the appropriate code.`,
                 onClick={handleCopy}
                 leftIcon={
                   copied ? (
-                    <Check className="w-3 h-3 text-emerald-400" />
+                    <Check className="w-3 h-3 text-[var(--accent)]" />
                   ) : (
-                    <Copy className="w-3 h-3 text-slate-400" />
+                    <Copy className="w-3 h-3 text-[var(--text-muted)]" />
                   )
                 }
-                className="text-slate-300 hover:text-white h-7 text-xs"
+                className="h-7 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               >
                 {copied ? "Copied" : "Copy Code"}
               </Button>
             </div>
-            <pre className="p-4 bg-[#070b10] text-emerald-400 font-mono text-xs overflow-x-auto max-h-80 leading-relaxed">
+            <pre className="p-4 bg-[var(--surface-inset)] text-[var(--accent)] font-mono text-xs overflow-x-auto max-h-80 leading-relaxed">
               <code>{generatedCode}</code>
             </pre>
           </div>

@@ -209,32 +209,32 @@ export const CollaborativeEditor = ({
     switch (status) {
       case 'connected':
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-950/70 px-2.5 py-1 text-xs font-medium text-emerald-400 border border-emerald-800/80 shadow-[0_0_12px_rgba(16,185,129,0.15)]">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-transparent bg-[var(--success-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--success)]">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--success)] opacity-60"></span>
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--success)]"></span>
             </span>
             {synced ? 'Synced' : 'Syncing…'}
           </span>
         );
       case 'connecting':
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-950/70 px-2.5 py-1 text-xs font-medium text-amber-400 border border-amber-800/80 shadow-[0_0_12px_rgba(245,158,11,0.15)]">
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-transparent bg-[var(--warning-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--warning)]">
+            <Loader2 className="h-3 w-3 animate-spin" />
             Connecting…
           </span>
         );
       case 'auth_failed':
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-950/80 px-2.5 py-1 text-xs font-medium text-rose-300 border border-rose-800">
-            <WifiOff className="h-3.5 w-3.5" />
-            Auth Denied
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--error-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--error)]">
+            <WifiOff className="h-3 w-3" />
+            Auth denied
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-2.5 py-1 text-xs font-medium text-slate-400 border border-slate-800">
-            <WifiOff className="h-3.5 w-3.5" />
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--surface-inset)] px-2.5 py-1 text-[11px] font-semibold text-[var(--text-muted)]">
+            <WifiOff className="h-3 w-3" />
             Disconnected
           </span>
         );
@@ -244,9 +244,8 @@ export const CollaborativeEditor = ({
   const readTimeMinutes = Math.max(1, Math.ceil(stats.words / 200));
 
   return (
-    <div className={`dark-quill flex flex-col bg-[var(--surface-card)] rounded-[var(--card-radius)] border-2 border-[var(--border-subtle)] overflow-hidden shadow-xl ${className}`}>
-      {/* Top Collab Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-[var(--surface-raised)] border-b border-[var(--border-subtle)] text-xs font-mono">
+    <div className={`dark-quill flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--surface)] ${className}`}>
+      {/* Top Collab Bar */}        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border-subtle)] bg-[var(--surface-raised)] px-4 py-2.5 text-[11px]">
         <div className="flex items-center gap-2.5">
           {getStatusBadge()}
           {readOnly && (
