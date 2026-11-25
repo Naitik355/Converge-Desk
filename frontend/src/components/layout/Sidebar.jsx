@@ -75,7 +75,7 @@ export const Sidebar = ({ isCollapsed, onToggleCollapse, onCloseMobile }) => {
           {!isCollapsed && (
             <span className="flex min-w-0 flex-col leading-tight">
               <span className="font-display text-[14px] font-bold tracking-[-0.03em] text-[var(--text-primary)]">
-                SyncSpace
+                ConvergeDesk
               </span>
               <span className="text-[10px] font-medium tracking-[0.06em] text-[var(--text-muted)]">
                 STUDIO WORKSPACE

@@ -37,12 +37,12 @@ export const LoginPage = () => {
   return (
     <AuthLayout
       eyebrow="Welcome back"
-      title="Sign in to SyncSpace"
+      title="Sign in to ConvergeDesk"
       description="Pick up where your team left off — documents, tasks and canvases are waiting."
       footer={
         <div className="flex flex-col gap-2 text-[12px] text-[var(--text-muted)]">
           <p>
-            New to SyncSpace?{' '}
+            New to ConvergeDesk?{' '}
             <Link to="/signup" className="font-semibold text-[var(--accent)] hover:underline">
               Create an account
             </Link>

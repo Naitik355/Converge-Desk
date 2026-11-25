@@ -49,7 +49,7 @@ export const Navbar = ({ onOpenMobileMenu }) => {
       return { title: 'Whiteboard', parent: 'Projects' };
     }
     if (path.startsWith('/projects/')) return { title: 'Project workspace', parent: 'Projects' };
-    return { title: 'SyncSpace', parent: 'Workspace' };
+    return { title: 'ConvergeDesk', parent: 'Workspace' };
   };
 
   const meta = resolveMeta();

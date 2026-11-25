@@ -109,7 +109,7 @@ export const LandingPage = () => {
                 <circle cx="12.25" cy="10.5" r="1.6" fill="var(--accent)" />
               </svg>
             </span>
-            <span className="font-display text-[15px] font-bold tracking-[-0.03em]">SyncSpace</span>
+            <span className="font-display text-[15px] font-bold tracking-[-0.03em]">ConvergeDesk</span>
           </button>
 
           <nav className="hidden items-center gap-7 md:flex">
@@ -195,7 +195,7 @@ export const LandingPage = () => {
               </h1>
 
               <p className="mx-auto mt-7 max-w-xl text-[16px] leading-[1.65] text-[var(--text-secondary)]">
-                SyncSpace keeps the thinking, the plan and the build in the same place — so your
+                ConvergeDesk keeps the thinking, the plan and the build in the same place — so your
                 team spends less time switching tools and more time making progress.
               </p>
 
@@ -235,7 +235,7 @@ export const LandingPage = () => {
                   </div>
                   <div className="mx-auto hidden items-center gap-2 rounded-full border border-[var(--border-subtle)] bg-[var(--surface)] px-3 py-1 sm:flex">
                     <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
-                    <span className="font-mono text-[10px] text-[var(--text-muted)]">syncspace.app/workspace</span>
+                    <span className="font-mono text-[10px] text-[var(--text-muted)]">ConvergeDesk.app/workspace</span>
                   </div>
                   <span className="ml-auto rounded-full bg-[var(--success-soft)] px-2 py-0.5 font-display text-[10px] font-semibold text-[var(--success)]">
                     3 online
@@ -381,7 +381,7 @@ export const LandingPage = () => {
             <p className="sx-eyebrow">One continuous workflow</p>
             <h2 className="sx-display-l mt-3">The handoffs were the problem.</h2>
             <p className="mt-4 text-[15px] leading-relaxed text-[var(--text-secondary)]">
-              Every tool switch loses a little context. SyncSpace removes the switch, so a decision
+              Every tool switch loses a little context. ConvergeDesk removes the switch, so a decision
               made in a document is still visible when the code gets written.
             </p>
           </div>
@@ -609,7 +609,7 @@ export const LandingPage = () => {
             <span className="flex h-6 w-6 items-center justify-center rounded-[7px] bg-[var(--ink)] text-[var(--on-ink)]">
               <span className="font-display text-[9px] font-bold">S</span>
             </span>
-            <span className="font-display text-[12px] font-semibold">SyncSpace</span>
+            <span className="font-display text-[12px] font-semibold">ConvergeDesk</span>
             <span className="text-[11px] text-[var(--text-muted)]">Studio workspace</span>
           </div>
           <p className="text-[11px] text-[var(--text-muted)]">

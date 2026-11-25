@@ -20,7 +20,7 @@ export const AuthLayout = ({ eyebrow, title, description, children, footer }) =>
               </svg>
             </span>
             <span className="font-display text-[15px] font-bold tracking-[-0.03em] text-[var(--on-ink)]">
-              SyncSpace
+              ConvergeDesk
             </span>
           </Link>
 
@@ -52,7 +52,7 @@ export const AuthLayout = ({ eyebrow, title, description, children, footer }) =>
             “The handoff disappears when the document, the board and the code share one room.”
           </p>
           <footer className="mt-2 font-display text-[11px] font-semibold text-[var(--on-ink)]/50">
-            SyncSpace Studio
+            ConvergeDesk Studio
           </footer>
         </blockquote>
       </aside>
@@ -62,9 +62,9 @@ export const AuthLayout = ({ eyebrow, title, description, children, footer }) =>
         <div className="flex h-16 items-center justify-between px-5 sm:px-8">
           <Link to="/" className="flex items-center gap-2 lg:invisible">
             <span className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-[var(--ink)] font-display text-[10px] font-bold text-[var(--on-ink)]">
-              S
+              CD
             </span>
-            <span className="font-display text-[13px] font-bold">SyncSpace</span>
+            <span className="font-display text-[13px] font-bold">ConvergeDesk</span>
           </Link>
           <button
             onClick={cycleTheme}
